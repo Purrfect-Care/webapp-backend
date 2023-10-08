@@ -1,12 +1,12 @@
-from django.http import HttpRequest, HttpResponse
-from .models import Employee, Visit
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from .decorators import custom_login_required
+from .forms import PatientForm
+from .models import Employee, Visit, Patient
 from django.contrib import messages
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .decorators import custom_login_required
+from django.http import HttpRequest
+from django.shortcuts import get_object_or_404, render, redirect
 
 def login_view(request: HttpRequest):
     if request.method == "POST":
@@ -47,3 +47,33 @@ def index(request: HttpRequest):
 def logout_view(request: HttpRequest):
     request.session.flush()
     return render(request, 'purrfectcareview/login.html')
+
+@custom_login_required
+def patients_view(request: HttpRequest):
+    
+    patients = Patient.objects.all
+    
+    context = {
+        'patients': patients
+    }
+
+    return render(request, 'purrfectcareview/patients.html', context)
+
+@custom_login_required
+def patient_details(request, patient_id):
+    patient = get_object_or_404(Patient, id=patient_id)
+    context = {'patient': patient}
+    return render(request, 'purrfectcareview/patient_details.html', context)
+
+@custom_login_required
+def add_patient(request):
+    if request.method == 'POST':
+        form = PatientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('patients_view')
+    else:
+        form = PatientForm()
+    
+    context = {'form': form}
+    return render(request, 'purrfectcareview/add_patient.html', context)
