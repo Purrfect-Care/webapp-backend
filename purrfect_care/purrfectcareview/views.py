@@ -10,12 +10,42 @@ from django.shortcuts import get_object_or_404, render, redirect
 from rest_framework import generics, viewsets
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import OwnerSerializer, PatientSerializer, VisitSerializer
+from .serializers import OwnerSerializer, PatientSerializer, VisitSerializer, BreedSerializer
 from rest_framework.views import APIView
 
 class PatientData(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     queryset = Patient.objects.all()
+
+    def create(self, request):
+        patient_data = request.data
+        existing_owner = patient_data.get('existing_owner')
+        
+
+        if existing_owner:
+            # Use the selected existing owner
+            patient_data['patients_owner_id'] = existing_owner.pk
+        else:
+            # Create a new owner
+            owner_serializer = OwnerSerializer(data=patient_data)
+            owner_serializer.is_valid(raise_exception=True)
+            owner_serializer.save()
+
+            # Use the newly created owner
+            patient_data['patients_owner_id'] = owner_serializer.data['id']
+        selected_species = request.data.get('selected_species')
+        if selected_breed_data:
+            selected_breed_serializer = BreedSerializer(data=selected_breed_data, context={'selected_species': selected_species})
+            selected_breed_serializer.is_valid(raise_exception=True)
+            selected_breed_serializer.save()
+        selected_breed_data = request.data.get('selected_breed')
+
+
+        patient_serializer = PatientSerializer(data=request.data)
+        patient_serializer.is_valid(raise_exception=True)
+        patient_serializer.save()
+
+        return Response({"msg": "Patient created"}, status=status.HTTP_201_CREATED)
 
     def list(self, request):
         qs = Patient.objects.all()
