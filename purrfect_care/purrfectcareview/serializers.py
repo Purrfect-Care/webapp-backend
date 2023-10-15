@@ -59,24 +59,24 @@ class PatientSerializer(serializers.ModelSerializer):
     GENDER_CHOICES = models.Patient.GENDER_CHOICES
     patient_gender = serializers.ChoiceField(choices = GENDER_CHOICES)
     patient_date_of_birth = serializers.DateField(required = False, allow_null = True)
-    existing_owner = serializers.PrimaryKeyRelatedField(
+    patients_owner_id = serializers.PrimaryKeyRelatedField(
         queryset=models.Owner.objects.all(),
         required=False,
         allow_null = True,
     )
-    selected_species = serializers.PrimaryKeyRelatedField(
+    patients_species_id = serializers.PrimaryKeyRelatedField(
         queryset=models.Species.objects.all(),
         allow_null=True,
         required=False,
     )
 
     #selected_breed = BreedSerializer(allow_null=True, required=False)
-    selected_breed = serializers.PrimaryKeyRelatedField(
+    patients_breed_id = serializers.PrimaryKeyRelatedField(
         queryset=models.Breed.objects.all(),
         required=False,
         allow_null=True,
     )
-    patients_owner_id = OwnerSerializer()
+    #patients_owner_id = OwnerSerializer()
     #patients_species_id = SpeciesSerializer()
     
     #patients_breed_id = BreedSerializer()
@@ -84,7 +84,7 @@ class PatientSerializer(serializers.ModelSerializer):
 
     
     def validate(self, data):
-        if data["patient_date_of_birth"] > date.today:
+        if data["patient_date_of_birth"] > date.today():
             raise serializers.ValidationError("Patient's date of birth cannot be a future date")
         return data
     
@@ -94,18 +94,17 @@ class PatientSerializer(serializers.ModelSerializer):
 
 
 class IllnessHistorySerializer(serializers.ModelSerializer):
-    illness_history_patient_id = PatientSerializer()
-    illness_history_illness_id = IllnessSerializer()
-    illness_onset_date = serializers.DateField(default = date.today)
+    illness_history_patient_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.Patient.objects.all())
+    illness_history_illness_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.Illness.objects.all())  # Use the related model serializer
+    illness_onset_date = serializers.DateField()
+
     class Meta:
         model = models.IllnessHistory
         fields = '__all__'
 
-class MedicationSerializer(serializers.ModelSerializer):
-    medication_name = serializers.CharField(max_length=255)
-    class Meta:
-        model = models.Medication
-        fields = '__all__'
+
 
 class VisitTypeSerializer(serializers.ModelSerializer):
     visit_type_name = serializers.CharField(max_length=100)
@@ -161,8 +160,22 @@ class PhotoSerializer(serializers.ModelSerializer):
         model = models.Photo
         fields = '__all__'
 
+class MedicationSerializer(serializers.ModelSerializer):
+    medication_name = serializers.CharField(max_length=255)
+    class Meta:
+        model = models.Medication
+        fields = '__all__'
+
+class MedicationAmountSerializer(serializers.Serializer):
+    medication = MedicationSerializer()  # Assuming you have a MedicationSerializer
+    medication_amount = serializers.IntegerField(min_value=1)
+
+
+
 class PrescriptionSerializer(serializers.ModelSerializer):
-    prescriptions_patients_id = PatientSerializer()
+    prescriptions_patient_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.Patient.objects.all()
+    )
     prescription_date = serializers.DateField(default=date.today)
 
     class Meta:
@@ -170,10 +183,16 @@ class PrescriptionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PrescribedMedicationSerializer(serializers.ModelSerializer):
-    prescribed_medications_prescription_id = PrescriptionSerializer()
-    medication = MedicationSerializer()
-    medication_amount = serializers.IntegerField(min_value = 1)
+    prescribed_medications_prescription_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.Prescription.objects.all()
+    )
+    prescribed_medications_medication_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.Medication.objects.all()
+    )
+    medication_amount = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = models.PrescribedMedication
         fields = '__all__'
+
+

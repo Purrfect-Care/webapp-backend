@@ -1,6 +1,6 @@
 
 from .forms import PatientForm
-from .models import Employee, Visit, Patient, Owner
+from .models import Employee, Visit, Patient, Owner, Prescription, PrescribedMedication, IllnessHistory
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -10,8 +10,40 @@ from django.shortcuts import get_object_or_404, render, redirect
 from rest_framework import generics, viewsets
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import OwnerSerializer, PatientSerializer, VisitSerializer, BreedSerializer
+from .serializers import OwnerSerializer, PatientSerializer, VisitSerializer, IllnessHistorySerializer, BreedSerializer, PrescriptionSerializer
 from rest_framework.views import APIView
+
+class PrescriptionViewSet(viewsets.ModelViewSet):
+    queryset = Prescription.objects.all()
+    serializer_class = PrescriptionSerializer
+    # Custom list action to filter and return a list of prescriptions
+    def list(self, request):
+        queryset = Prescription.objects.all()
+        # Serialize the queryset using the serializer class
+        prescription_serializer = PrescriptionSerializer(queryset, many=True)
+
+        return Response(prescription_serializer.data, status.HTTP_200_OK)
+    
+class IllnessData(viewsets.ModelViewSet):
+    queryset = IllnessHistory.objects.all()
+    serializer_class = IllnessHistorySerializer
+
+    def create(self, request):
+        serializer = IllnessHistorySerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def list(self, request):
+        qs = IllnessHistory.objects.all()
+
+        illness_serializer = IllnessHistorySerializer(qs, many=True)
+
+        return Response(illness_serializer.data, status.HTTP_200_OK)
 
 class PatientData(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
@@ -19,56 +51,80 @@ class PatientData(viewsets.ModelViewSet):
 
     def create(self, request):
         patient_data = request.data
-        existing_owner = patient_data.get('existing_owner')
-        
-
-        if existing_owner:
-            # Use the selected existing owner
-            patient_data['patients_owner_id'] = existing_owner.pk
-        else:
-            # Create a new owner
-            owner_serializer = OwnerSerializer(data=patient_data)
-            owner_serializer.is_valid(raise_exception=True)
-            owner_serializer.save()
-
-            # Use the newly created owner
-            patient_data['patients_owner_id'] = owner_serializer.data['id']
-        selected_species = request.data.get('selected_species')
-        if selected_breed_data:
-            selected_breed_serializer = BreedSerializer(data=selected_breed_data, context={'selected_species': selected_species})
-            selected_breed_serializer.is_valid(raise_exception=True)
-            selected_breed_serializer.save()
-        selected_breed_data = request.data.get('selected_breed')
-
-
+        #patients_owner_id = patient_data.get('patients_owner_id')
         patient_serializer = PatientSerializer(data=request.data)
         patient_serializer.is_valid(raise_exception=True)
         patient_serializer.save()
 
         return Response({"msg": "Patient created"}, status=status.HTTP_201_CREATED)
-
     def list(self, request):
         qs = Patient.objects.all()
         patient_serializer = PatientSerializer(qs, many=True)
         return Response(patient_serializer.data, status.HTTP_200_OK)
 
-'''class PatientVisitData(APIView):
+
+class OwnerView(viewsets.ModelViewSet):
+    serializer_class = OwnerSerializer
+    queryset = Owner.objects.all()
+
+    def create(self, request):
+        serializer = OwnerSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PresciptionData(APIView):
     def get(self, request):
         try:
-            patient_qs = Patient.objects.all()
-            patient_serializer = PatientSerializer(patient_qs, many = True)
+            prescription_qs = Prescription.objects.all()
+            data = []
 
-            visit_qs = Visit.objects.all()
-            visit_serializer = VisitSerializer(visit_qs, many=True)
+            for prescription in prescription_qs:
+                prescription_data = {
+                    "prescription_id": prescription.id,
+                    "prescriptions_patient_id": prescription.prescriptions_patient_id.id,
+                    "prescription_date": prescription.prescription_date,
+                    "medications": []
+                }
+                prescribed_medication_qs = prescription.prescribedmedication_set.all()
 
-            return_data = {
-                "patient": patient_serializer.data,
-                "visit": visit_serializer.data
-            }
-            return Response(data = return_data, status=status.HTTP_200_OK)
+                for prescribed_medication in prescribed_medication_qs:
+                    medication_data = {
+                        "medication": prescribed_medication.prescribed_medications_medication_id.id,
+                        "medication_amount": prescribed_medication.medication_amount
+                    }
+                    prescription_data["medications"].append(medication_data)
+
+                data.append(prescription_data)
+
+            return Response(data=data, status=status.HTTP_200_OK)
+
         except Exception as exc:
             return Response(data={"msg": "Internal server error", "detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-'''        
+            
+
+class PrescriptionsView(viewsets.ModelViewSet):
+    serializer_class = PrescriptionSerializer
+    queryset = Prescription.objects.all()
+
+    def create(self, request):
+        prescription_data = request.data
+        existing_patient = prescription_data.get('prescriptions_patients_id')
+        
+        prescription_serializer = PrescriptionSerializer(data=request.data)
+        prescription_serializer.is_valid(raise_exception=True)
+        prescription_serializer.save()
+
+        return Response({"msg": "Prescription created"}, status=status.HTTP_201_CREATED)
+
+
+
+
+
 
 def login_view(request: HttpRequest):
     if request.method == "POST":
