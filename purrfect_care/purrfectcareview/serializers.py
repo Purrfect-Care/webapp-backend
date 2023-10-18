@@ -161,6 +161,7 @@ class PhotoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MedicationSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()  # Assuming the medication model has an 'id' field
     medication_name = serializers.CharField(max_length=255)
     class Meta:
         model = models.Medication
@@ -170,29 +171,25 @@ class MedicationAmountSerializer(serializers.Serializer):
     medication = MedicationSerializer()  # Assuming you have a MedicationSerializer
     medication_amount = serializers.IntegerField(min_value=1)
 
-
-
-class PrescriptionSerializer(serializers.ModelSerializer):
-    prescriptions_patient_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Patient.objects.all()
-    )
-    prescription_date = serializers.DateField(default=date.today)
-
-    class Meta:
-        model = models.Prescription
-        fields = '__all__'
+    
 
 class PrescribedMedicationSerializer(serializers.ModelSerializer):
     prescribed_medications_prescription_id = serializers.PrimaryKeyRelatedField(
         queryset=models.Prescription.objects.all()
     )
-    prescribed_medications_medication_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Medication.objects.all()
-    )
+    medication_name = serializers.CharField(source='prescribed_medications_medication_id.medication_name')
     medication_amount = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = models.PrescribedMedication
         fields = '__all__'
 
+class PrescriptionSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source='prescriptions_patient_id.patient_name')
+    prescription_date = serializers.DateField(default=date.today)
+    prescribed_medications = PrescribedMedicationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = models.Prescription
+        fields = '__all__'      
 

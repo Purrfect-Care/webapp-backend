@@ -10,19 +10,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from rest_framework import generics, viewsets
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import OwnerSerializer, PatientSerializer, VisitSerializer, IllnessHistorySerializer, BreedSerializer, PrescriptionSerializer
+from .serializers import OwnerSerializer, PatientSerializer, PrescribedMedicationSerializer, VisitSerializer, IllnessHistorySerializer, BreedSerializer, PrescriptionSerializer
 from rest_framework.views import APIView
-
-class PrescriptionViewSet(viewsets.ModelViewSet):
-    queryset = Prescription.objects.all()
-    serializer_class = PrescriptionSerializer
-    # Custom list action to filter and return a list of prescriptions
-    def list(self, request):
-        queryset = Prescription.objects.all()
-        # Serialize the queryset using the serializer class
-        prescription_serializer = PrescriptionSerializer(queryset, many=True)
-
-        return Response(prescription_serializer.data, status.HTTP_200_OK)
     
 class IllnessData(viewsets.ModelViewSet):
     queryset = IllnessHistory.objects.all()
@@ -75,36 +64,31 @@ class OwnerView(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class PrescriptionListCreateView(generics.ListCreateAPIView):
+    queryset = Prescription.objects.all()
+    serializer_class = PrescriptionSerializer
 
+    def create(self, request, *args, **kwargs):
+        # Validate the prescription data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-class PresciptionData(APIView):
-    def get(self, request):
-        try:
-            prescription_qs = Prescription.objects.all()
-            data = []
+        # Create a new prescription
+        self.perform_create(serializer)
 
-            for prescription in prescription_qs:
-                prescription_data = {
-                    "prescription_id": prescription.id,
-                    "prescriptions_patient_id": prescription.prescriptions_patient_id.id,
-                    "prescription_date": prescription.prescription_date,
-                    "medications": []
-                }
-                prescribed_medication_qs = prescription.prescribedmedication_set.all()
+        # Attach medications to the newly created prescription
+        prescription = serializer.instance
+        prescribed_medications_data = request.data.get('prescribed_medications', [])
+        for medication_data in prescribed_medications_data:
+            medication_data['prescribed_medications_prescription_id'] = prescription.id
 
-                for prescribed_medication in prescribed_medication_qs:
-                    medication_data = {
-                        "medication": prescribed_medication.prescribed_medications_medication_id.id,
-                        "medication_amount": prescribed_medication.medication_amount
-                    }
-                    prescription_data["medications"].append(medication_data)
+        medication_serializer = PrescribedMedicationSerializer(data=prescribed_medications_data, many=True)
+        medication_serializer.is_valid(raise_exception=True)
+        medication_serializer.save()
 
-                data.append(prescription_data)
-
-            return Response(data=data, status=status.HTTP_200_OK)
-
-        except Exception as exc:
-            return Response(data={"msg": "Internal server error", "detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
             
 
 class PrescriptionsView(viewsets.ModelViewSet):

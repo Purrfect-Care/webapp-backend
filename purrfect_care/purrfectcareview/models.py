@@ -131,13 +131,13 @@ class Photo(models.Model):
 
 # Define the 'recepty' model
 class Prescription(models.Model):
-    prescriptions_patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    prescriptions_patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescriptions')
     prescription_date = models.DateField(default=timezone.now)
 
 
 
 # Define the 'leki_na_recepcie' model
 class PrescribedMedication(models.Model):
-    prescribed_medications_prescription_id = models.ForeignKey(Prescription, on_delete=models.CASCADE)
+    prescribed_medications_prescription_id = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='prescribed_medications')
     prescribed_medications_medication_id = models.ForeignKey(Medication, on_delete=models.CASCADE)
     medication_amount = models.PositiveIntegerField()
