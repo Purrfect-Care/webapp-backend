@@ -59,27 +59,15 @@ class PatientSerializer(serializers.ModelSerializer):
     GENDER_CHOICES = models.Patient.GENDER_CHOICES
     patient_gender = serializers.ChoiceField(choices = GENDER_CHOICES)
     patient_date_of_birth = serializers.DateField(required = False, allow_null = True)
-    patients_owner_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Owner.objects.all(),
-        required=False,
-        allow_null = True,
-    )
-    patients_species_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Species.objects.all(),
-        allow_null=True,
-        required=False,
-    )
-
-    #selected_breed = BreedSerializer(allow_null=True, required=False)
-    patients_breed_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Breed.objects.all(),
-        required=False,
-        allow_null=True,
-    )
-    #patients_owner_id = OwnerSerializer()
-    #patients_species_id = SpeciesSerializer()
-    
-    #patients_breed_id = BreedSerializer()
+    patients_owner_first_name = serializers.CharField(source = 'patients_owner_id.owner_first_name')
+    patients_owner_last_name = serializers.CharField(source = 'patients_owner_id.owner_last_name')
+    patients_owner_address = serializers.CharField(source = 'patients_owner_id.owner_address')
+    patients_owner_postcode = serializers.CharField(source = 'patients_owner_id.owner_postcode')
+    patients_owner_city = serializers.CharField(source = 'patients_owner_id.owner_city')
+    patients_owner_phone_number = serializers.CharField(source = 'patients_owner_id.owner_phone_number')
+    patients_owner_email = serializers.CharField(source = 'patients_owner_id.owner_email')
+    patients_species_name = serializers.CharField(source = 'patients_species_id.species_name')
+    patients_breed_name = serializers.CharField(source = 'patients_breed_id.breed_name')
 
 
     
@@ -94,10 +82,8 @@ class PatientSerializer(serializers.ModelSerializer):
 
 
 class IllnessHistorySerializer(serializers.ModelSerializer):
-    illness_history_patient_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Patient.objects.all())
-    illness_history_illness_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Illness.objects.all())  # Use the related model serializer
+    illness_history_patient_name = serializers.CharField(source = 'illness_history_patient_id.patient_name')
+    illness_history_illness_name = serializers.CharField(source = 'illness_history_illness_id.illness_name')
     illness_onset_date = serializers.DateField()
 
     class Meta:
