@@ -100,7 +100,8 @@ class VisitTypeSerializer(serializers.ModelSerializer):
 
 class VisitSubtypeSerializer(serializers.ModelSerializer):
     visit_subtype_name = serializers.CharField(max_length=100)
-    visit_subtypes_visit_type_id = VisitTypeSerializer()
+    visit_subtypes_visit_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.VisitType.objects.all())
     class Meta:
         model = models.VisitSubtype
         fields = '__all__'

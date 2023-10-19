@@ -1,6 +1,6 @@
 
 from .forms import PatientForm
-from .models import Employee, Visit, Patient, Owner, Prescription, PrescribedMedication, IllnessHistory
+from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, PrescribedMedication, IllnessHistory
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from rest_framework import generics, viewsets
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import OwnerSerializer, PatientSerializer, PrescribedMedicationSerializer, VisitSerializer, IllnessHistorySerializer, BreedSerializer, PrescriptionSerializer
+from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, PrescribedMedicationSerializer, VisitSerializer, IllnessHistorySerializer, BreedSerializer, PrescriptionSerializer
 from rest_framework.views import APIView
     
 class IllnessData(viewsets.ModelViewSet):
@@ -106,7 +106,27 @@ class PrescriptionsView(viewsets.ModelViewSet):
         return Response({"msg": "Prescription created"}, status=status.HTTP_201_CREATED)
 
 
+class VisitSubtypeView(viewsets.ModelViewSet):
+    serializer_class = VisitSubtypeSerializer
+    queryset = VisitSubtype.objects.all()
 
+    def create(self, request):
+        visit_subtype_serializer = VisitSubtypeSerializer(data=request.data)
+        visit_subtype_serializer.is_valid(raise_exception=True)
+        visit_subtype_serializer.save()
+
+        return Response({"msg": "Visit subtype created"}, status=status.HTTP_201_CREATED)           
+    
+class VisitTypeView(viewsets.ModelViewSet):
+    serializer_class = VisitTypeSerializer
+    queryset = VisitType.objects.all()
+
+    def create(self, request):
+        visit_type_serializer = VisitTypeSerializer(data=request.data)
+        visit_type_serializer.is_valid(raise_exception=True)
+        visit_type_serializer.save()
+
+        return Response({"msg": "Visit type created"}, status=status.HTTP_201_CREATED)   
 
 
 
