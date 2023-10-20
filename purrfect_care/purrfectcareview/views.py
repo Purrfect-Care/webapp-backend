@@ -1,5 +1,3 @@
-
-from .forms import PatientForm
 from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, PrescribedMedication, IllnessHistory
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -186,17 +184,4 @@ def patient_details(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
     context = {'patient': patient}
     return render(request, 'purrfectcareview/patient_details.html', context)
-
-
-def add_patient(request):
-    if request.method == 'POST':
-        form = PatientForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('patients_view')
-    else:
-        form = PatientForm()
-    
-    context = {'form': form}
-    return render(request, 'purrfectcareview/add_patient.html', context)
 
