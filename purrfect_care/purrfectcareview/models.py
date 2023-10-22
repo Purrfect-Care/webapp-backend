@@ -10,7 +10,7 @@ class Species(models.Model):
 
 # Define the 'rasy' model
 class Breed(models.Model):
-    breed_name = models.CharField(max_length=50, unique=True)
+    breed_name = models.CharField(max_length=50)
     breeds_species_id = models.ForeignKey(Species, on_delete=models.CASCADE)
 
     def __str__(self):
