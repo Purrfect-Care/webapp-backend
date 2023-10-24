@@ -117,12 +117,14 @@ class EmployeeSerializer(serializers.ModelSerializer):
     employee_email = serializers.EmailField()
     employee_password = serializers.CharField(max_length=64)
     employees_clinic_id = ClinicSerializer()
+
     class Meta:
         model = models.Employee
         fields = '__all__'
 
+
 class VisitSerializer(serializers.ModelSerializer):
-    isit_datetime = serializers.DateTimeField(default = date.today)
+    visit_datetime = serializers.DateTimeField(default=date.today)
     visit_duration = serializers.TimeField()
     visits_patient_id = PatientSerializer()
     visits_visit_type_id = VisitTypeSerializer()
