@@ -1,3 +1,5 @@
+from rest_framework.generics import RetrieveAPIView
+
 from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, PrescribedMedication, IllnessHistory
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -10,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
     PrescribedMedicationSerializer, VisitSerializer, IllnessHistorySerializer, BreedSerializer, PrescriptionSerializer, \
-    EmployeeSerializer
+    EmployeeSerializer, PatientSideBarListSerializer, PatientSectionSerializer
 from rest_framework.views import APIView
 
 
@@ -52,6 +54,17 @@ class VisitView(viewsets.ModelViewSet):
 class EmployeeView(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+
+
+class PatientSideBarListViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSideBarListSerializer
+
+
+class PatientSectionView(RetrieveAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSectionSerializer
+    lookup_field = 'id'
 
 
 def login_view(request: HttpRequest):

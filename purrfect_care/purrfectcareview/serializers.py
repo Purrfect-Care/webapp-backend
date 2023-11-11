@@ -3,18 +3,45 @@ from . import models
 from datetime import date
 
 
-class SpeciesSerializer(serializers.ModelSerializer):
+class DynamicFieldsModelSerializer(serializers.ModelSerializer):
+    """
+    A ModelSerializer that takes an additional `fields` argument that
+    controls which fields should be displayed.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # Don't pass the 'fields' arg up to the superclass
+        fields = kwargs.pop('fields', None)
+        exclude = kwargs.pop('exclude', None)
+
+        # Instantiate the superclass normally
+        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(fields)
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+        if exclude is not None:
+            not_allowed = set(exclude)
+            for exclude_name in not_allowed:
+                self.fields.pop(exclude_name)
+
+
+class SpeciesSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = models.Species
         fields = "__all__"
 
 
 class BreedSerializer(serializers.ModelSerializer):
-    breeds_species_id = SpeciesSerializer()
+    breeds_species = SpeciesSerializer(source='breeds_species_id')
 
     def validate(self, data):
         selected_species = self.context.get('selected_species')
-        if selected_species and data['breeds_species_id'] != selected_species:
+        if selected_species and data['breeds_species'] != selected_species:
             raise serializers.ValidationError("Breed species must match the selected species.")
         return data
 
@@ -23,7 +50,7 @@ class BreedSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class OwnerSerializer(serializers.ModelSerializer):
+class OwnerSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = models.Owner
         fields = '__all__'
@@ -42,9 +69,9 @@ class ClinicSerializer(serializers.ModelSerializer):
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    patients_owner_id = OwnerSerializer()
-    patients_species_id = SpeciesSerializer()
-    patients_breed_id = BreedSerializer()
+    patients_owner = OwnerSerializer(source='patients_owner_id')
+    patients_species = SpeciesSerializer(source='patients_species_id')
+    patients_breed = BreedSerializer(source='patients_breed_id')
 
     def validate(self, data):
         if data["patient_date_of_birth"] > date.today():
@@ -56,9 +83,26 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PatientSideBarListSerializer(serializers.ModelSerializer):
+    patients_owner = OwnerSerializer(source='patients_owner_id', fields=['owner_first_name', 'owner_last_name'])
+
+    class Meta:
+        model = models.Patient
+        fields = ('id', 'patient_name', 'patients_owner')
+
+
+class PatientSectionSerializer(serializers.ModelSerializer):
+    patients_species = SpeciesSerializer(source='patients_species_id', fields=['species_name'])
+
+    class Meta:
+        model = models.Patient
+        fields = ('id', 'patient_name', 'patient_date_of_birth', 'patients_species')
+
+
 class IllnessHistorySerializer(serializers.ModelSerializer):
-    illness_history_patient_id = PatientSerializer()
-    illness_history_illness_id = IllnessSerializer()
+    illness_history_patient = PatientSerializer('illness_history_patient_id')
+    illness_history_illness = IllnessSerializer('illness_history_illness_id')
+
     class Meta:
         model = models.IllnessHistory
         fields = '__all__'
@@ -77,7 +121,7 @@ class VisitSubtypeSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    employees_clinic_id = ClinicSerializer()
+    employees_clinic = ClinicSerializer('employees_clinic_id')
 
     class Meta:
         model = models.Employee
@@ -85,10 +129,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class VisitSerializer(serializers.ModelSerializer):
-    visits_patient_id = PatientSerializer()
-    visits_visit_type_id = VisitTypeSerializer()
-    visits_visit_subtype_id = VisitSubtypeSerializer()
-    visits_employee_id = EmployeeSerializer()
+    visits_patient = PatientSerializer('visits_patient_id')
+    visits_visit_type = VisitTypeSerializer('visits_visit_type_id')
+    visits_visit_subtype = VisitSubtypeSerializer('visits_visit_subtype_id')
+    visits_employee = EmployeeSerializer('visits_employee_id')
 
     class Meta:
         model = models.Visit
@@ -96,7 +140,7 @@ class VisitSerializer(serializers.ModelSerializer):
 
 
 class PhotoSerializer(serializers.ModelSerializer):
-    photos_visit_id = VisitSerializer()
+    photos_visit = VisitSerializer('photos_visit_id')
 
     class Meta:
         model = models.Photo
