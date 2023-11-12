@@ -92,8 +92,8 @@ class PatientSideBarListSerializer(serializers.ModelSerializer):
 
 
 class IllnessHistorySerializer(serializers.ModelSerializer):
-    illness_history_patient = PatientSerializer('illness_history_patient_id')
-    illness_history_illness = IllnessSerializer('illness_history_illness_id')
+    illness_history_patient = PatientSerializer(source='illness_history_patient_id')
+    illness_history_illness = IllnessSerializer(source='illness_history_illness_id')
 
     class Meta:
         model = models.IllnessHistory
@@ -113,7 +113,7 @@ class VisitSubtypeSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    employees_clinic = ClinicSerializer('employees_clinic_id')
+    employees_clinic = ClinicSerializer(source='employees_clinic_id')
 
     class Meta:
         model = models.Employee
@@ -121,10 +121,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class VisitSerializer(serializers.ModelSerializer):
-    visits_patient = PatientSerializer('visits_patient_id')
-    visits_visit_type = VisitTypeSerializer('visits_visit_type_id')
-    visits_visit_subtype = VisitSubtypeSerializer('visits_visit_subtype_id')
-    visits_employee = EmployeeSerializer('visits_employee_id')
+    visits_patient = PatientSerializer(source='visits_patient_id')
+    visits_visit_type = VisitTypeSerializer(source='visits_visit_type_id')
+    visits_visit_subtype = VisitSubtypeSerializer(source='visits_visit_subtype_id')
+    visits_employee = EmployeeSerializer(source='visits_employee_id')
 
     class Meta:
         model = models.Visit
@@ -132,7 +132,7 @@ class VisitSerializer(serializers.ModelSerializer):
 
 
 class PhotoSerializer(serializers.ModelSerializer):
-    photos_visit = VisitSerializer('photos_visit_id')
+    photos_visit = VisitSerializer(source='photos_visit_id')
 
     class Meta:
         model = models.Photo
