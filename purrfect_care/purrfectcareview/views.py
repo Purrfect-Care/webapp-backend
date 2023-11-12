@@ -1,19 +1,13 @@
-from rest_framework.generics import RetrieveAPIView
-
-from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, PrescribedMedication, IllnessHistory
+from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, render, redirect
-from rest_framework import generics, viewsets
-from rest_framework import status
-from rest_framework.response import Response
+from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
-    PrescribedMedicationSerializer, VisitSerializer, IllnessHistorySerializer, BreedSerializer, PrescriptionSerializer, \
-    EmployeeSerializer, PatientSideBarListSerializer, PatientSectionSerializer
-from rest_framework.views import APIView
+    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer
 
 
 class IllnessHistoryView(viewsets.ModelViewSet):
@@ -61,12 +55,6 @@ class PatientSideBarListViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PatientSideBarListSerializer
 
 
-class PatientSectionView(RetrieveAPIView):
-    queryset = Patient.objects.all()
-    serializer_class = PatientSectionSerializer
-    lookup_field = 'id'
-
-
 def login_view(request: HttpRequest):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -85,12 +73,11 @@ def login_view(request: HttpRequest):
             print("Pracownik nie istnieje")
             messages.error(request, "Invalid email or password.")
     print("nie weszlo w zadnego ifa")
-    #return render(request, 'purrfectcareview/login.html')
+    # return render(request, 'purrfectcareview/login.html')
     return render(request)
 
 
 def index(request: HttpRequest):
-
     employee_id = request.session.get("employee_id")
     employee = Employee.objects.get(id=1)
 
@@ -103,15 +90,15 @@ def index(request: HttpRequest):
 
     return render(request, 'purrfectcareview/index.html', context)
 
+
 def logout_view(request: HttpRequest):
     request.session.flush()
     return render(request, 'purrfectcareview/login.html')
 
 
 def patients_view(request: HttpRequest):
-    
     patients = Patient.objects.all
-    
+
     context = {
         'patients': patients
     }
@@ -123,4 +110,3 @@ def patient_details(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
     context = {'patient': patient}
     return render(request, 'purrfectcareview/patient_details.html', context)
-

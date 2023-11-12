@@ -30,7 +30,7 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
                 self.fields.pop(exclude_name)
 
 
-class SpeciesSerializer(DynamicFieldsModelSerializer):
+class SpeciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Species
         fields = "__all__"
@@ -89,14 +89,6 @@ class PatientSideBarListSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Patient
         fields = ('id', 'patient_name', 'patients_owner')
-
-
-class PatientSectionSerializer(serializers.ModelSerializer):
-    patients_species = SpeciesSerializer(source='patients_species_id', fields=['species_name'])
-
-    class Meta:
-        model = models.Patient
-        fields = ('id', 'patient_name', 'patient_date_of_birth', 'patients_species')
 
 
 class IllnessHistorySerializer(serializers.ModelSerializer):
