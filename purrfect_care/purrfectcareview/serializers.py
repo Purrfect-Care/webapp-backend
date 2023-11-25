@@ -69,9 +69,9 @@ class ClinicSerializer(serializers.ModelSerializer):
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    patients_owner = OwnerSerializer(source='patients_owner_id')
-    patients_species = SpeciesSerializer(source='patients_species_id')
-    patients_breed = BreedSerializer(source='patients_breed_id')
+    patients_owner = OwnerSerializer(source='patients_owner_id', read_only=True)
+    patients_species = SpeciesSerializer(source='patients_species_id', read_only=True)
+    patients_breed = BreedSerializer(source='patients_breed_id', read_only=True)
 
     def validate(self, data):
         if data["patient_date_of_birth"] > date.today():
@@ -121,15 +121,39 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class VisitSerializer(serializers.ModelSerializer):
-    visits_patient = PatientSerializer(source='visits_patient_id')
-    visits_visit_type = VisitTypeSerializer(source='visits_visit_type_id')
-    visits_visit_subtype = VisitSubtypeSerializer(source='visits_visit_subtype_id')
-    visits_employee = EmployeeSerializer(source='visits_employee_id')
+    visits_patient = PatientSerializer(source='visits_patient_id', read_only=True)
+    visits_visit_type = VisitTypeSerializer(source='visits_visit_type_id', read_only=True)
+    visits_visit_subtype = VisitSubtypeSerializer(source='visits_visit_subtype_id', read_only=True)
+    visits_employee = EmployeeSerializer(source='visits_employee_id', read_only=True)
 
     class Meta:
         model = models.Visit
         fields = '__all__'
 
+    def update(self, instance, validated_data):
+        instance.visit_datetime = validated_data.get('visit_datetime', instance.visit_datetime)
+        instance.visit_duration = validated_data.get('visit_duration', instance.visit_duration)
+        instance.visit_status = validated_data.get('visit_status', instance.visit_status)
+        instance.visit_description = validated_data.get('visit_description', instance.visit_description)
+        instance.patient_weight = validated_data.get('patient_weight', instance.patient_weight)
+        instance.patient_height = validated_data.get('patient_height', instance.patient_height)
+
+        # Update related fields if provided in validated data
+        visits_employee_id = validated_data.get('visits_employee_id')
+        if visits_employee_id is not None:
+            instance.visits_employee_id = visits_employee_id
+
+        visits_visit_type_id = validated_data.get('visits_visit_type_id')
+        if visits_visit_type_id is not None:
+            instance.visits_visit_type_id = visits_visit_type_id
+
+        visits_visit_subtype_id = validated_data.get('visits_visit_subtype_id')
+        if visits_visit_subtype_id is not None:
+            instance.visits_visit_subtype_id = visits_visit_subtype_id
+
+        instance.save()
+
+        return instance
 
 class PhotoSerializer(serializers.ModelSerializer):
     photos_visit = VisitSerializer(source='photos_visit_id')
@@ -139,7 +163,7 @@ class PhotoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MedicationSerializer(serializers.ModelSerializer):
+class MedicationSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = models.Medication
         fields = '__all__'
@@ -151,6 +175,7 @@ class MedicationAmountSerializer(serializers.Serializer):
 
 
 class PrescribedMedicationSerializer(serializers.ModelSerializer):
+    medication_name = MedicationSerializer(source = 'prescribed_medications_medication_id', fields=['medication_name'])
     class Meta:
         model = models.PrescribedMedication
         fields = '__all__'
