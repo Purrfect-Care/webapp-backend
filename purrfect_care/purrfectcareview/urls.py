@@ -19,6 +19,7 @@ router.register("patients_sidebar_list", views.PatientSideBarListViewSet, "patie
 urlpatterns = [
     path('api/', include(router.urls)),
     path("", views.index, name="index"),
+    path('api/filtered_visit_subtypes/<int:visit_type_id>/', views.FilteredVisitSubtypesView.as_view({'get': 'list'}), name='filtered-visit-subtypes'),
     # path("login/", views.login_view, name="login"),
     # path("logout/", views.logout_view, name="logout"),
 ]

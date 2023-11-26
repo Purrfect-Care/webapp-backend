@@ -121,11 +121,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class VisitSerializer(serializers.ModelSerializer):
-    visits_patient = PatientSerializer(source='visits_patient_id')
-    visits_visit_type = VisitTypeSerializer(source='visits_visit_type_id')
-    visits_visit_subtype = VisitSubtypeSerializer(source='visits_visit_subtype_id')
-    visits_employee = EmployeeSerializer(source='visits_employee_id')
-
+    visits_patient = PatientSerializer(source='visits_patient_id', read_only=True)
+    visits_visit_type = VisitTypeSerializer(source='visits_visit_type_id', read_only=True)
+    visits_visit_subtype = VisitSubtypeSerializer(source='visits_visit_subtype_id', read_only=True)
+    visits_employee = EmployeeSerializer(source='visits_employee_id', read_only=True)
+    visit_datetime = serializers.DateTimeField(format='%Y-%m-%dT%H:%M')
     class Meta:
         model = models.Visit
         fields = '__all__'
