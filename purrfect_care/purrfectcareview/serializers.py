@@ -92,8 +92,8 @@ class PatientSideBarListSerializer(serializers.ModelSerializer):
 
 
 class IllnessHistorySerializer(serializers.ModelSerializer):
-    illness_history_patient = PatientSerializer(source='illness_history_patient_id')
-    illness_history_illness = IllnessSerializer(source='illness_history_illness_id')
+    illness_history_patient = PatientSerializer(source='illness_history_patient_id', read_only=True)
+    illness_history_illness = IllnessSerializer(source='illness_history_illness_id', read_only=True)
 
     class Meta:
         model = models.IllnessHistory
