@@ -1,4 +1,4 @@
-from .models import Employee, Visit, Illness, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory
+from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -7,16 +7,12 @@ from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, render, redirect
 from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
-    VisitSerializer, IllnessHistorySerializer, IllnessSerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer
+    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer
 
 
 class IllnessHistoryView(viewsets.ModelViewSet):
     serializer_class = IllnessHistorySerializer
     queryset = IllnessHistory.objects.all()
-    
-class IllnessView(viewsets.ModelViewSet):
-    serializer_class = IllnessSerializer
-    queryset = Illness.objects.all()
 
 
 class PatientView(viewsets.ModelViewSet):
