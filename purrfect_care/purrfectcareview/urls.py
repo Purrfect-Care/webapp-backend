@@ -14,6 +14,7 @@ router.register("visit_subtypes", views.VisitSubtypeView, "visit_subtypes")
 router.register("visits", views.VisitView, "visits")
 router.register("employees", views.EmployeeView, "employees")
 router.register("patients_sidebar_list", views.PatientSideBarListViewSet, "patients_sidebar_list")
+router.register("illnesses", views.IllnessView, "illnesses")
 
 
 urlpatterns = [
