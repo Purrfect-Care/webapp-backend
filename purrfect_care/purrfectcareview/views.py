@@ -1,16 +1,15 @@
-from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness
+from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness, Clinic
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
-    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, IllnessSerializer
+    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, IllnessSerializer, ClinicSerializer
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
 import jwt
 from argon2 import PasswordHasher
-
 
 class IllnessHistoryView(viewsets.ModelViewSet):
     serializer_class = IllnessHistorySerializer
@@ -25,6 +24,11 @@ class PatientView(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     queryset = Patient.objects.all()
 
+
+class ClinicViewSet(viewsets.ModelViewSet):
+    serializer_class = ClinicSerializer
+    queryset = Clinic.objects.all()
+    
 
 class OwnerView(viewsets.ModelViewSet):
     serializer_class = OwnerSerializer
