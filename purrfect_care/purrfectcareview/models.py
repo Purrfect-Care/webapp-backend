@@ -39,7 +39,7 @@ class Illness(models.Model):
 # Define the 'gabinety' model
 class Clinic(models.Model):
     clinic_name = models.CharField(max_length=150, unique=True)
-    clinic_address = models.CharField(max_length=255, unique=True)
+    clinic_address = models.CharField(max_length=255)
     clinic_postcode = models.CharField(max_length=20)
     clinic_city = models.CharField(max_length=50)
     clinic_phone_number = models.CharField(max_length=20, unique=True)
@@ -57,6 +57,7 @@ class Patient(models.Model):
     patients_owner_id = models.ForeignKey(Owner, on_delete=models.CASCADE)
     patients_species_id = models.ForeignKey(Species, on_delete=models.CASCADE)
     patients_breed_id = models.ForeignKey(Breed, on_delete=models.CASCADE)
+    patients_clinic_id = models.ForeignKey(Clinic, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.patient_name
@@ -99,7 +100,7 @@ class Employee(models.Model):
     employee_city = models.CharField(max_length=50)
     employee_phone_number = models.CharField(max_length=20, unique=True)
     employee_email = models.EmailField(unique=True)
-    employee_password = models.CharField(max_length=64)
+    employee_password = models.CharField(max_length=200)
     employees_clinic_id = models.ForeignKey(Clinic, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -132,6 +133,7 @@ class Photo(models.Model):
 # Define the 'recepty' model
 class Prescription(models.Model):
     prescriptions_patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescriptions')
+    prescriptions_employee_id = models.ForeignKey(Employee, on_delete=models.CASCADE)
     prescription_date = models.DateField(default=timezone.now)
 
 
