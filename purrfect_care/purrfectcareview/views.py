@@ -51,7 +51,7 @@ class VisitTypeView(viewsets.ModelViewSet):
 
 
 class VisitView(viewsets.ModelViewSet):
-    queryset = Visit.objects.all()
+    queryset = Visit.objects.all().order_by('visit_datetime')
     serializer_class = VisitSerializer
 
 
