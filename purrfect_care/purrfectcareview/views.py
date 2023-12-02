@@ -58,6 +58,18 @@ class VisitView(viewsets.ModelViewSet):
 class EmployeeView(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    
+    def create(self, request, *args, **kwargs):
+        # You can perform custom logic before or after calling the super().create()
+        ph =PasswordHasher()
+        # Example: You may want to hash the password before saving
+        raw_password = request.data.get('employee_password')
+        hashed_password = ph.hash(raw_password)
+        request.data['employee_password'] = hashed_password
+        response = super().create(request, *args, **kwargs)
+        # You can perform additional actions after the object is created
+        # Example: Send a welcome email
+        return response
 
 
 class PatientSideBarListViewSet(viewsets.ReadOnlyModelViewSet):
