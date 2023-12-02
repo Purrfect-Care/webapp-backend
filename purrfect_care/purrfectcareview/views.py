@@ -35,21 +35,13 @@ class VisitSubtypeView(viewsets.ModelViewSet):
     queryset = VisitSubtype.objects.all()
 
 
-class FilteredVisitSubtypesView(viewsets.ModelViewSet):
-    serializer_class = VisitSubtypeSerializer
-
-    def get_queryset(self):
-        visit_type_id = self.kwargs['visit_type_id']
-        return VisitSubtype.objects.filter(visit_subtypes_visit_type_id=visit_type_id)
-
-
 class VisitTypeView(viewsets.ModelViewSet):
     serializer_class = VisitTypeSerializer
     queryset = VisitType.objects.all()
 
 
 class VisitView(viewsets.ModelViewSet):
-    queryset = Visit.objects.all()
+    queryset = Visit.objects.all().order_by('visit_datetime')
     serializer_class = VisitSerializer
 
 
