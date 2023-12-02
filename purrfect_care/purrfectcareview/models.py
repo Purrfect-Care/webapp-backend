@@ -1,5 +1,10 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+def upload_to_profile_pictures(instance, filename):
+    return 'profile_pictures/{filename}'.format(filename=filename)
+
 
 # Define the 'gatunki' model
 class Species(models.Model):
@@ -54,6 +59,7 @@ class Patient(models.Model):
     GENDER_CHOICES = [('male', 'Male'), ('female', 'Female')]
     patient_gender = models.CharField(max_length=6, choices=GENDER_CHOICES)
     patient_date_of_birth = models.DateField(null=True, blank=True)
+    patient_photo = models.ImageField(_("Image"), upload_to=upload_to_profile_pictures, default='profile_pictures/default.png')
     patients_owner_id = models.ForeignKey(Owner, on_delete=models.CASCADE)
     patients_species_id = models.ForeignKey(Species, on_delete=models.CASCADE)
     patients_breed_id = models.ForeignKey(Breed, on_delete=models.CASCADE)

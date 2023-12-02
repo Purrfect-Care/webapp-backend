@@ -72,6 +72,7 @@ class PatientSerializer(serializers.ModelSerializer):
     patients_owner = OwnerSerializer(source='patients_owner_id', read_only=True)
     patients_species = SpeciesSerializer(source='patients_species_id', read_only=True)
     patients_breed = BreedSerializer(source='patients_breed_id', read_only=True)
+    patients_clinic = ClinicSerializer(source='patients_clinic_id', read_only=True)
 
     def validate(self, data):
         if data["patient_date_of_birth"] > date.today():
