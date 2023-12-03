@@ -176,7 +176,7 @@ class MedicationAmountSerializer(serializers.Serializer):
 
 
 class PrescribedMedicationSerializer(serializers.ModelSerializer):
-    medication_name = MedicationSerializer(source = 'prescribed_medications_medication_id', fields=['medication_name'])
+    medication_name = MedicationSerializer(source = 'prescribed_medications_medication_id', fields=['medication_name'], read_only = True)
     class Meta:
         model = models.PrescribedMedication
         fields = '__all__'

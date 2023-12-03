@@ -16,6 +16,8 @@ router.register("employees", views.EmployeeView, "employees")
 router.register("patients_sidebar_list", views.PatientSideBarListViewSet, "patients_sidebar_list")
 router.register("illnesses", views.IllnessView, "illnesses")
 router.register("clinics", views.ClinicViewSet, "clinics")
+router.register("medications", views.MedicationView, "clinics")
+router.register("prescribedmed", views.PrescribedMedicationView, "clinics")
 
 urlpatterns = [
     path('api/', include(router.urls)),
