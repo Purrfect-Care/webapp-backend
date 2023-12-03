@@ -11,10 +11,22 @@ import json
 import jwt
 from argon2 import PasswordHasher
 
+
 class IllnessHistoryView(viewsets.ModelViewSet):
     serializer_class = IllnessHistorySerializer
-    queryset = IllnessHistory.objects.all()
-    
+
+    def get_queryset(self):
+        patient_id = self.request.query_params.get('patient_id', None)
+
+        # Validate that the patient_id parameter is provided
+        if patient_id is None:
+            return IllnessHistory.objects.all()
+
+        # Filter illness history by patient_id
+        queryset = IllnessHistory.objects.filter(illness_history_patient_id=patient_id)
+        return queryset
+
+
 class IllnessView(viewsets.ModelViewSet):
     serializer_class = IllnessSerializer
     queryset = Illness.objects.all()
@@ -37,7 +49,17 @@ class OwnerView(viewsets.ModelViewSet):
 
 class PrescriptionsView(viewsets.ModelViewSet):
     serializer_class = PrescriptionSerializer
-    queryset = Prescription.objects.all()
+
+    def get_queryset(self):
+        patient_id = self.request.query_params.get('patient_id', None)
+
+        # Validate that the patient_id parameter is provided
+        if patient_id is None:
+            return Prescription.objects.all()
+
+        # Filter illness history by patient_id
+        queryset = Prescription.objects.filter(prescriptions_patient_id=patient_id)
+        return queryset
 
 
 class VisitSubtypeView(viewsets.ModelViewSet):
@@ -51,8 +73,20 @@ class VisitTypeView(viewsets.ModelViewSet):
 
 
 class VisitView(viewsets.ModelViewSet):
-    queryset = Visit.objects.all().order_by('visit_datetime')
     serializer_class = VisitSerializer
+
+    def get_queryset(self):
+        employee_id = self.request.query_params.get('employee_id', None)
+        patient_id = self.request.query_params.get('patient_id', None)
+
+        if employee_id is not None:
+            queryset = Visit.objects.filter(visits_employee_id=employee_id).order_by('visit_datetime')
+        elif patient_id is not None:
+            queryset = Visit.objects.filter(visits_patient_id=patient_id).order_by('visit_datetime')
+        else:
+            queryset = Visit.objects.all().order_by('visit_datetime')
+
+        return queryset
 
 
 class EmployeeView(viewsets.ModelViewSet):
