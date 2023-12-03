@@ -1,9 +1,11 @@
-from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness, Clinic
+from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness, Clinic, Medication, \
+PrescribedMedication
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
-    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, IllnessSerializer, ClinicSerializer
+    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, IllnessSerializer, ClinicSerializer, \
+    MedicationSerializer, PrescribedMedicationSerializer
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -88,11 +90,19 @@ class VisitView(viewsets.ModelViewSet):
 
         return queryset
 
+      
+class MedicationView(viewsets.ModelViewSet):
+    queryset = Medication.objects.all()
+    serializer_class = MedicationSerializer
 
+
+class PrescribedMedicationView(viewsets.ModelViewSet):
+    queryset = PrescribedMedication.objects.all()
+    serializer_class = PrescribedMedicationSerializer
 class EmployeeView(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     def create(self, request, *args, **kwargs):
         # You can perform custom logic before or after calling the super().create()
         ph =PasswordHasher()
