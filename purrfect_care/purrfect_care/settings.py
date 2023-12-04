@@ -97,7 +97,7 @@ DATABASES = {
         'NAME': 'purrfectcare_test',
         'USER': 'root',
         'PASSWORD': 'DB20mspppc23',
-        'HOST': 'localhost',
+        'HOST': 'database',
         'PORT': '3306',
     }
 }
