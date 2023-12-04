@@ -1,18 +1,19 @@
 from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness, Clinic, Medication, \
-PrescribedMedication
+PrescribedMedication, Species, Breed
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
     VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, IllnessSerializer, ClinicSerializer, \
-    MedicationSerializer, PrescribedMedicationSerializer
+    MedicationSerializer, PrescribedMedicationSerializer, SpeciesSerializer, BreedSerializer
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
 import jwt
 from argon2 import PasswordHasher
-
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import permissions
 
 class IllnessHistoryView(viewsets.ModelViewSet):
     serializer_class = IllnessHistorySerializer
@@ -36,6 +37,7 @@ class IllnessView(viewsets.ModelViewSet):
 
 class PatientView(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
+    parser_classes = (MultiPartParser, FormParser)
     queryset = Patient.objects.all()
 
 
@@ -99,6 +101,15 @@ class MedicationView(viewsets.ModelViewSet):
 class PrescribedMedicationView(viewsets.ModelViewSet):
     queryset = PrescribedMedication.objects.all()
     serializer_class = PrescribedMedicationSerializer
+    
+class BreedView(viewsets.ModelViewSet):
+    queryset = Breed.objects.all()
+    serializer_class = BreedSerializer
+    
+class SpeciesView(viewsets.ModelViewSet):
+    queryset = Species.objects.all()
+    serializer_class = SpeciesSerializer
+
 class EmployeeView(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
@@ -174,3 +185,4 @@ def patient_details(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
     context = {'patient': patient}
     return render(request, 'purrfectcareview/patient_details.html', context)
+

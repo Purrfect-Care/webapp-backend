@@ -78,10 +78,21 @@ class PatientSerializer(serializers.ModelSerializer):
         if data["patient_date_of_birth"] > date.today():
             raise serializers.ValidationError("Patient's date of birth cannot be a future date")
         return data
+    
+    def to_representation(self, instance):
+        # Check if patient_photo is None and set it to the default value
+        if not instance.patient_photo:
+            instance.patient_photo = 'profile_pictures/default.png'
+
+        return super().to_representation(instance)
+
 
     class Meta:
         model = models.Patient
         fields = '__all__'
+        extra_kwargs = {
+            'patient_photo': {'required': False, 'allow_null': True},
+        }
 
 
 class PatientSideBarListSerializer(serializers.ModelSerializer):
