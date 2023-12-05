@@ -22,6 +22,8 @@ router.register("medications", views.MedicationView, "clinics")
 router.register("prescribedmed", views.PrescribedMedicationView, "clinics")
 router.register("photos", views.PhotoView, "photos")
 
+router.register("species", views.SpeciesView, "species")
+router.register("breeds", views.BreedView, "breeds")
 urlpatterns = [
     path('api/', include(router.urls)),
     path('login/', views.login, name='login'),

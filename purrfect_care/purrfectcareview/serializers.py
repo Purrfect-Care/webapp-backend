@@ -72,15 +72,27 @@ class PatientSerializer(serializers.ModelSerializer):
     patients_owner = OwnerSerializer(source='patients_owner_id', read_only=True)
     patients_species = SpeciesSerializer(source='patients_species_id', read_only=True)
     patients_breed = BreedSerializer(source='patients_breed_id', read_only=True)
+    patients_clinic = ClinicSerializer(source='patients_clinic_id', read_only=True)
 
     def validate(self, data):
         if data["patient_date_of_birth"] > date.today():
             raise serializers.ValidationError("Patient's date of birth cannot be a future date")
         return data
+    
+    def to_representation(self, instance):
+        # Check if patient_photo is None and set it to the default value
+        if not instance.patient_photo:
+            instance.patient_photo = 'profile_pictures/default.png'
+
+        return super().to_representation(instance)
+
 
     class Meta:
         model = models.Patient
         fields = '__all__'
+        extra_kwargs = {
+            'patient_photo': {'required': False, 'allow_null': True},
+        }
 
 
 class PatientSideBarListSerializer(serializers.ModelSerializer):

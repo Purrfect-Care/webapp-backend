@@ -14,7 +14,8 @@ from django.utils import timezone
 import json
 import jwt
 from argon2 import PasswordHasher
-
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import permissions
 
 class IllnessHistoryView(viewsets.ModelViewSet):
     serializer_class = IllnessHistorySerializer
@@ -43,6 +44,7 @@ class IllnessView(viewsets.ModelViewSet):
 
 class PatientView(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
+    parser_classes = (MultiPartParser, FormParser)
     queryset = Patient.objects.all()
 
 
@@ -106,7 +108,14 @@ class MedicationView(viewsets.ModelViewSet):
 class PrescribedMedicationView(viewsets.ModelViewSet):
     queryset = PrescribedMedication.objects.all()
     serializer_class = PrescribedMedicationSerializer
-
+    
+class BreedView(viewsets.ModelViewSet):
+    queryset = Breed.objects.all()
+    serializer_class = BreedSerializer
+    
+class SpeciesView(viewsets.ModelViewSet):
+    queryset = Species.objects.all()
+    serializer_class = SpeciesSerializer
 
 class EmployeeView(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
@@ -183,3 +192,4 @@ def patient_details(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
     context = {'patient': patient}
     return render(request, 'purrfectcareview/patient_details.html', context)
+
