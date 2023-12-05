@@ -155,8 +155,9 @@ class VisitSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class PhotoSerializer(serializers.ModelSerializer):
-    photos_visit = VisitSerializer(source='photos_visit_id')
+    # photos_visit = VisitSerializer(source='photos_visit_id', read_only=True)
 
     class Meta:
         model = models.Photo

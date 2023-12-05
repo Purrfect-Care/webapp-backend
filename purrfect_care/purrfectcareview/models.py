@@ -1,12 +1,14 @@
 from django.db import models
 from django.utils import timezone
 
+
 # Define the 'gatunki' model
 class Species(models.Model):
     species_name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.species_name
+
 
 # Define the 'rasy' model
 class Breed(models.Model):
@@ -15,6 +17,7 @@ class Breed(models.Model):
 
     def __str__(self):
         return self.breed_name
+
 
 # Define the 'opiekunowie' model
 class Owner(models.Model):
@@ -29,12 +32,14 @@ class Owner(models.Model):
     def __str__(self):
         return f"{self.owner_first_name} {self.owner_last_name}"
 
+
 # Define the 'choroby' model
 class Illness(models.Model):
     illness_name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.illness_name
+
 
 # Define the 'gabinety' model
 class Clinic(models.Model):
@@ -47,6 +52,7 @@ class Clinic(models.Model):
 
     def __str__(self):
         return self.clinic_name
+
 
 # Define the 'pacjenci' model
 class Patient(models.Model):
@@ -62,11 +68,13 @@ class Patient(models.Model):
     def __str__(self):
         return self.patient_name
 
+
 # Define the 'historie_chorob' model
 class IllnessHistory(models.Model):
     illness_history_patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     illness_history_illness_id = models.ForeignKey(Illness, on_delete=models.CASCADE)
     illness_onset_date = models.DateField()
+
 
 # Define the 'leki' model
 class Medication(models.Model):
@@ -75,12 +83,14 @@ class Medication(models.Model):
     def __str__(self):
         return self.medication_name
 
+
 # Define the 'typy_wizyty' model
 class VisitType(models.Model):
     visit_type_name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.visit_type_name
+
 
 # Define the 'podtypy_wizyty' model
 class VisitSubtype(models.Model):
@@ -89,6 +99,7 @@ class VisitSubtype(models.Model):
 
     def __str__(self):
         return self.visit_subtype_name
+
 
 # Define the 'pracownicy' model
 class Employee(models.Model):
@@ -105,6 +116,7 @@ class Employee(models.Model):
 
     def __str__(self):
         return f"{self.employee_first_name} {self.employee_last_name}"
+
 
 # Define the 'wizyty' model
 class Visit(models.Model):
@@ -125,17 +137,18 @@ class Visit(models.Model):
 class Photo(models.Model):
     photo_name = models.CharField(max_length=255)
     photos_visit_id = models.ForeignKey(Visit, on_delete=models.CASCADE)
-    photo_description = models.TextField(null = True, blank=True)
+    photo_description = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to='images/', default='images/default_image.jpg')
 
     def __str__(self):
         return self.photo_name
+
 
 # Define the 'recepty' model
 class Prescription(models.Model):
     prescriptions_patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescriptions')
     prescriptions_employee_id = models.ForeignKey(Employee, on_delete=models.CASCADE)
     prescription_date = models.DateField(default=timezone.now)
-
 
 
 # Define the 'leki_na_recepcie' model

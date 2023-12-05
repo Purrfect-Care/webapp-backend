@@ -2,6 +2,8 @@ from django.urls import include, path
 from . import views
 from django.contrib.auth import views as auth_views
 from rest_framework import routers
+from django.conf import settings
+from django.conf.urls.static import static
 
 router = routers.DefaultRouter()
 router.register("illness_history", views.IllnessHistoryView, "illness_history")
@@ -18,8 +20,11 @@ router.register("illnesses", views.IllnessView, "illnesses")
 router.register("clinics", views.ClinicViewSet, "clinics")
 router.register("medications", views.MedicationView, "clinics")
 router.register("prescribedmed", views.PrescribedMedicationView, "clinics")
+router.register("photos", views.PhotoView, "photos")
 
 urlpatterns = [
     path('api/', include(router.urls)),
     path('login/', views.login, name='login'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

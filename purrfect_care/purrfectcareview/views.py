@@ -1,11 +1,13 @@
-from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness, Clinic, Medication, \
-PrescribedMedication
+from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness, \
+    Clinic, Medication, \
+    PrescribedMedication, Photo
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
-    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, IllnessSerializer, ClinicSerializer, \
-    MedicationSerializer, PrescribedMedicationSerializer
+    VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, \
+    IllnessSerializer, ClinicSerializer, \
+    MedicationSerializer, PrescribedMedicationSerializer, PhotoSerializer
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -27,6 +29,11 @@ class IllnessHistoryView(viewsets.ModelViewSet):
         # Filter illness history by patient_id
         queryset = IllnessHistory.objects.filter(illness_history_patient_id=patient_id)
         return queryset
+
+
+class PhotoView(viewsets.ModelViewSet):
+    serializer_class = PhotoSerializer
+    queryset = Photo.objects.all()
 
 
 class IllnessView(viewsets.ModelViewSet):
@@ -99,6 +106,8 @@ class MedicationView(viewsets.ModelViewSet):
 class PrescribedMedicationView(viewsets.ModelViewSet):
     queryset = PrescribedMedication.objects.all()
     serializer_class = PrescribedMedicationSerializer
+
+
 class EmployeeView(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
