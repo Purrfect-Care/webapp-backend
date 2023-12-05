@@ -1,13 +1,13 @@
 from .models import Employee, Visit, VisitType, VisitSubtype, Patient, Owner, Prescription, IllnessHistory, Illness, \
     Clinic, Medication, \
-    PrescribedMedication, Photo
+    PrescribedMedication, Photo, Species, Breed
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
     VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, \
     IllnessSerializer, ClinicSerializer, \
-    MedicationSerializer, PrescribedMedicationSerializer, PhotoSerializer
+    MedicationSerializer, PrescribedMedicationSerializer, PhotoSerializer, SpeciesSerializer, BreedSerializer
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
