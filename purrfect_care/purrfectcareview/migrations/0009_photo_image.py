@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('purrfectcareview', '0007_prescription_prescriptions_employee_id'),
+        ('purrfectcareview', '0008_patient_patient_photo'),
     ]
 
     operations = [
