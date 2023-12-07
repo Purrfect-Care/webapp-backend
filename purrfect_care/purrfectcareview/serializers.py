@@ -100,7 +100,7 @@ class PatientSideBarListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Patient
-        fields = ('id', 'patient_name', 'patients_owner')
+        fields = ('id', 'patient_name', 'patients_owner', 'patient_photo')
 
 
 class IllnessHistorySerializer(serializers.ModelSerializer):
