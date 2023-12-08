@@ -45,6 +45,7 @@ class IllnessView(viewsets.ModelViewSet):
 class PatientView(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     parser_classes = (MultiPartParser, FormParser)
+    queryset = Patient.objects.all()
 
 
 class ClinicViewSet(viewsets.ModelViewSet):
