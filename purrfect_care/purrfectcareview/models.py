@@ -133,7 +133,7 @@ class Visit(models.Model):
     visits_visit_subtype_id = models.ForeignKey(VisitSubtype, on_delete=models.CASCADE)
     visits_employee_id = models.ForeignKey(Employee, on_delete=models.CASCADE)
     VISIT_STATUS_CHOICES = [('planned', 'Planned'), ('cancelled', 'Cancelled'), ('complete', 'Complete')]
-    visit_status = models.CharField(max_length=10, choices=VISIT_STATUS_CHOICES)
+    visit_status = models.CharField(max_length=30, choices=VISIT_STATUS_CHOICES)
     visit_description = models.TextField(null=True, blank=True)
     patient_weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     patient_height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
