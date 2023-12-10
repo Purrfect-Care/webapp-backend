@@ -45,7 +45,13 @@ class IllnessView(viewsets.ModelViewSet):
 class PatientView(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     parser_classes = (MultiPartParser, FormParser)
-    queryset = Patient.objects.all()
+    def get_queryset(self):
+        clinic_id = self.request.query_params.get('clinic_id', None)
+        if clinic_id is not None:
+            queryset = Patient.objects.filter(patients_clinic_id=clinic_id)
+        else:
+            queryset = Patient.objects.all()
+        return queryset
 
 
 class ClinicViewSet(viewsets.ModelViewSet):
