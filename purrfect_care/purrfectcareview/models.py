@@ -62,7 +62,7 @@ class Clinic(models.Model):
 # Define the 'pacjenci' model
 class Patient(models.Model):
     patient_name = models.CharField(max_length=255)
-    GENDER_CHOICES = [('male', 'Male'), ('female', 'Female')]
+    GENDER_CHOICES = [('samiec', 'Samiec'), ('samica', 'Samica')]
     patient_gender = models.CharField(max_length=6, choices=GENDER_CHOICES)
     patient_date_of_birth = models.DateField(null=True, blank=True)
     patient_photo = models.ImageField(_("Image"), upload_to=upload_to_profile_pictures, default='profile_pictures/default.png')
