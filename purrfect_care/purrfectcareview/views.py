@@ -95,8 +95,11 @@ class VisitView(viewsets.ModelViewSet):
     def get_queryset(self):
         employee_id = self.request.query_params.get('employee_id', None)
         patient_id = self.request.query_params.get('patient_id', None)
+        clinic_id = self.request.query_params.get('clinic_id', None)
 
-        if employee_id is not None:
+        if clinic_id is not None:
+            queryset = Visit.objects.filter(visits_employee_id__employees_clinic_id=clinic_id).order_by('visit_datetime')
+        elif employee_id is not None:
             queryset = Visit.objects.filter(visits_employee_id=employee_id).order_by('visit_datetime')
         elif patient_id is not None:
             queryset = Visit.objects.filter(visits_patient_id=patient_id).order_by('visit_datetime')
@@ -104,6 +107,7 @@ class VisitView(viewsets.ModelViewSet):
             queryset = Visit.objects.all().order_by('visit_datetime')
 
         return queryset
+
 
       
 class MedicationView(viewsets.ModelViewSet):
