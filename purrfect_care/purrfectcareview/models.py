@@ -162,3 +162,4 @@ class PrescribedMedication(models.Model):
     prescribed_medications_prescription_id = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='prescribed_medications')
     prescribed_medications_medication_id = models.ForeignKey(Medication, on_delete=models.CASCADE)
     medication_amount = models.PositiveIntegerField()
+    medication_dosage = models.TextField(null=True, blank=True)
