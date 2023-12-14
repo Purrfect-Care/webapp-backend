@@ -141,13 +141,12 @@ class Visit(models.Model):
 
 # Define the 'zdjecia' model
 class Photo(models.Model):
-    photo_name = models.CharField(max_length=255)
     photos_visit_id = models.ForeignKey(Visit, on_delete=models.CASCADE)
     photo_description = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='images/', default='images/default_image.jpg')
 
     def __str__(self):
-        return self.photo_name
+        return self.image
 
 
 # Define the 'recepty' model
