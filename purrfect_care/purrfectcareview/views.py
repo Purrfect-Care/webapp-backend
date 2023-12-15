@@ -17,6 +17,32 @@ from argon2 import PasswordHasher
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import permissions
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+import os
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_old_photo(request, file_name):
+    try:
+        # Assuming your photos are stored in the media directory within the project
+        file_path = os.path.join('/webapp-backend', 'purrfect_care', 'media', 'profile_pictures', file_name)
+
+        print(f"Attempting to delete file: {file_path}")
+
+        # Implement logic to delete the file
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+            # Respond with success
+            return JsonResponse({'message': 'Photo deleted successfully'}, status=204)
+        else:
+            return JsonResponse({'error': 'File not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 class IllnessHistoryView(viewsets.ModelViewSet):
     serializer_class = IllnessHistorySerializer
 
@@ -45,13 +71,7 @@ class IllnessView(viewsets.ModelViewSet):
 class PatientView(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     parser_classes = (MultiPartParser, FormParser)
-    def get_queryset(self):
-        clinic_id = self.request.query_params.get('clinic_id', None)
-        if clinic_id is not None:
-            queryset = Patient.objects.filter(patients_clinic_id=clinic_id)
-        else:
-            queryset = Patient.objects.all()
-        return queryset
+    queryset = Patient.objects.all()
 
 
 class ClinicViewSet(viewsets.ModelViewSet):
@@ -98,7 +118,7 @@ class VisitView(viewsets.ModelViewSet):
         clinic_id = self.request.query_params.get('clinic_id', None)
 
         if clinic_id is not None:
-            queryset = Visit.objects.filter(visits_employee_id__employees_clinic_id=clinic_id).order_by('visit_datetime')
+            queryset = Visit.objects.filter(visits_clinic_id=clinic_id).order_by('visit_datetime')
         elif employee_id is not None:
             queryset = Visit.objects.filter(visits_employee_id=employee_id).order_by('visit_datetime')
         elif patient_id is not None:
@@ -146,13 +166,7 @@ class EmployeeView(viewsets.ModelViewSet):
 
 class PatientSideBarListViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PatientSideBarListSerializer
-    def get_queryset(self):
-        clinic_id = self.request.query_params.get('clinic_id', None)
-        if clinic_id is not None:
-            queryset = Patient.objects.filter(patients_clinic_id=clinic_id)
-        else:
-            queryset = Patient.objects.all()
-        return queryset
+    queryset = Patient.objects.all()
 
 @csrf_exempt
 def login(request):

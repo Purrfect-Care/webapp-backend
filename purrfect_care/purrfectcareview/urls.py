@@ -4,6 +4,7 @@ from django.contrib.auth import views as auth_views
 from rest_framework import routers
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import delete_old_photo
 
 router = routers.DefaultRouter()
 router.register("illness_history", views.IllnessHistoryView, "illness_history")
@@ -27,6 +28,7 @@ router.register("breeds", views.BreedView, "breeds")
 urlpatterns = [
     path('api/', include(router.urls)),
     path('login/', views.login, name='login'),
-]
+    path('delete_old_photo/<str:file_name>/', delete_old_photo, name='delete_old_photo'),
 
+]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
