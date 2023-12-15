@@ -34,7 +34,15 @@ class IllnessHistoryView(viewsets.ModelViewSet):
 
 class PhotoView(viewsets.ModelViewSet):
     serializer_class = PhotoSerializer
-    queryset = Photo.objects.all()
+
+    def get_queryset(self):
+        visit_id = self.request.query_params.get('visit_id', None)
+
+        if visit_id is None:
+            return Photo.objects.all()
+
+        queryset = Photo.objects.filter(photos_visit_id=visit_id)
+        return queryset
 
 
 class IllnessView(viewsets.ModelViewSet):
