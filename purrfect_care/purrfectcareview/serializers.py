@@ -37,7 +37,7 @@ class SpeciesSerializer(serializers.ModelSerializer):
 
 
 class BreedSerializer(serializers.ModelSerializer):
-    breeds_species = SpeciesSerializer(source='breeds_species_id')
+    breeds_species = SpeciesSerializer(source='breeds_species_id', read_only=True)
 
     def validate(self, data):
         selected_species = self.context.get('selected_species')
