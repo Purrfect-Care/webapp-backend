@@ -69,7 +69,6 @@ class Patient(models.Model):
     patients_owner_id = models.ForeignKey(Owner, on_delete=models.CASCADE)
     patients_species_id = models.ForeignKey(Species, on_delete=models.CASCADE)
     patients_breed_id = models.ForeignKey(Breed, on_delete=models.CASCADE)
-    patients_clinic_id = models.ForeignKey(Clinic, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.patient_name
@@ -137,7 +136,7 @@ class Visit(models.Model):
     visit_description = models.TextField(null=True, blank=True)
     patient_weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     patient_height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-
+    visits_clinic_id = models.ForeignKey(Clinic, on_delete=models.CASCADE, default=1)
 
 # Define the 'zdjecia' model
 class Photo(models.Model):
