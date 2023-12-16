@@ -118,6 +118,7 @@ class VisitTypeSerializer(serializers.ModelSerializer):
 
 
 class VisitSubtypeSerializer(serializers.ModelSerializer):
+    visit_subtype_type = VisitTypeSerializer(source='visit_subtypes_visit_type_id', read_only=True)
     class Meta:
         model = models.VisitSubtype
         fields = '__all__'
