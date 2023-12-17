@@ -21,6 +21,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import os
+from rest_framework.response import Response
+from rest_framework import status
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -135,6 +137,16 @@ class VisitView(viewsets.ModelViewSet):
             queryset = Visit.objects.all().order_by('visit_datetime')
 
         return queryset
+    
+    def create(self, request, *args, **kwargs):
+        employee_id = request.data.get('visits_employee_id')
+        visit_datetime = request.data.get('visit_datetime')
+        overlapping_visits = Visit.objects.filter(visits_employee_id=employee_id, visit_datetime=visit_datetime)
+        
+        if overlapping_visits.exists():
+            return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return super().create(request, *args, **kwargs)
 
 
       
