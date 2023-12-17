@@ -42,6 +42,26 @@ def delete_old_photo(request, file_name):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_empty_prescriptions(request):
+    try:
+        # Fetch all prescriptions
+        prescriptions = Prescription.objects.all()
+
+        # Iterate through prescriptions
+        for prescription in prescriptions:
+            # Check if the prescription has no attached medications
+            if not prescription.prescribed_medications.exists():
+                # If empty, delete the prescription
+                prescription.delete()
+                print('Empty prescription deleted successfully')
+
+        return JsonResponse({'success': True, 'message': 'Empty prescriptions deleted successfully'})
+    except Exception as e:
+        print(f'Error deleting empty prescriptions: {str(e)}')
+        return JsonResponse({'success': False, 'message': f'Error deleting empty prescriptions: {str(e)}'})
+
 
 class IllnessHistoryView(viewsets.ModelViewSet):
     serializer_class = IllnessHistorySerializer
@@ -170,6 +190,8 @@ class EmployeeView(viewsets.ModelViewSet):
         # You can perform additional actions after the object is created
         # Example: Send a welcome email
         return response
+    
+
 
 
 class PatientSideBarListViewSet(viewsets.ReadOnlyModelViewSet):
