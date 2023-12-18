@@ -106,6 +106,11 @@ class IllnessHistorySerializer(serializers.ModelSerializer):
     illness_history_patient = PatientSerializer(source='illness_history_patient_id', read_only=True)
     illness_history_illness = IllnessSerializer(source='illness_history_illness_id', read_only=True)
 
+    def validate(self, data):
+        if data["illness_onset_date"] > date.today():
+            raise serializers.ValidationError("Illness onset date cannot be a future date!")
+        return data
+    
     class Meta:
         model = models.IllnessHistory
         fields = '__all__'
