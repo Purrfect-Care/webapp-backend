@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 from rest_framework import routers
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import delete_old_photo
+from .views import delete_old_photo, delete_empty_prescriptions
 
 router = routers.DefaultRouter()
 router.register("illness_history", views.IllnessHistoryView, "illness_history")
@@ -22,13 +22,12 @@ router.register("clinics", views.ClinicViewSet, "clinics")
 router.register("medications", views.MedicationView, "medications")
 router.register("prescribedmed", views.PrescribedMedicationView, "prescribedmed")
 router.register("photos", views.PhotoView, "photos")
-
 router.register("species", views.SpeciesView, "species")
 router.register("breeds", views.BreedView, "breeds")
 urlpatterns = [
     path('api/', include(router.urls)),
     path('login/', views.login, name='login'),
     path('delete_old_photo/<str:file_name>/', delete_old_photo, name='delete_old_photo'),
-
+    path("empty_prescriptions/", delete_empty_prescriptions, name="empty_prescription")
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
