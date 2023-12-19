@@ -169,7 +169,6 @@ class VisitView(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
 
-      
 class MedicationView(viewsets.ModelViewSet):
     queryset = Medication.objects.all()
     serializer_class = MedicationSerializer
@@ -178,22 +177,24 @@ class MedicationView(viewsets.ModelViewSet):
 class PrescribedMedicationView(viewsets.ModelViewSet):
     queryset = PrescribedMedication.objects.all()
     serializer_class = PrescribedMedicationSerializer
-    
+
+
 class BreedView(viewsets.ModelViewSet):
     queryset = Breed.objects.all()
     serializer_class = BreedSerializer
-    
+
+
 class SpeciesView(viewsets.ModelViewSet):
     queryset = Species.objects.all()
     serializer_class = SpeciesSerializer
 
+
 class EmployeeView(viewsets.ModelViewSet):
-    queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
 
     def create(self, request, *args, **kwargs):
         # You can perform custom logic before or after calling the super().create()
-        ph =PasswordHasher()
+        ph = PasswordHasher()
         # Example: You may want to hash the password before saving
         raw_password = request.data.get('employee_password')
         hashed_password = ph.hash(raw_password)
@@ -205,10 +206,22 @@ class EmployeeView(viewsets.ModelViewSet):
     
 
 
+    def get_queryset(self):
+        employee_role = self.request.query_params.get('employee_role', None)
+        employees_clinic_id = self.request.query_params.get('employees_clinic_id', None)
+
+        if employee_role is not None and employees_clinic_id is not None:
+            queryset = Employee.objects.filter(employee_role=employee_role, employees_clinic_id=employees_clinic_id)
+        else:
+            queryset = Employee.objects.all()
+
+        return queryset
+
 
 class PatientSideBarListViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PatientSideBarListSerializer
     queryset = Patient.objects.all()
+
 
 @csrf_exempt
 def login(request):
@@ -249,6 +262,7 @@ def login(request):
             return JsonResponse({'message': 'Internal Server Error'}, status=500)
     else:
         return JsonResponse({'message': 'Method not allowed'}, status=405)
+
 
 def patients_view(request: HttpRequest):
     patients = Patient.objects.all
