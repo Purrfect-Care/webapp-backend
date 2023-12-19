@@ -154,9 +154,10 @@ class EmployeeView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         employee_role = self.request.query_params.get('employee_role', None)
+        employees_clinic_id = self.request.query_params.get('employees_clinic_id', None)
 
-        if employee_role is not None:
-            queryset = Employee.objects.filter(employee_role=employee_role)
+        if employee_role is not None and employees_clinic_id is not None:
+            queryset = Employee.objects.filter(employee_role=employee_role, employees_clinic_id=employees_clinic_id)
         else:
             queryset = Employee.objects.all()
 
