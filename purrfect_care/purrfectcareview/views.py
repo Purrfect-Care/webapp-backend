@@ -33,6 +33,10 @@ def delete_old_photo(request, file_name):
 
         print(f"Attempting to delete file: {file_path}")
 
+        # Check if the file is named "default.png" and skip deletion
+        if file_name == 'default.png':
+            return JsonResponse({'message': 'File is named default.png and will not be deleted'})
+
         # Implement logic to delete the file
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -43,7 +47,6 @@ def delete_old_photo(request, file_name):
             return JsonResponse({'error': 'File not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_empty_prescriptions(request):
