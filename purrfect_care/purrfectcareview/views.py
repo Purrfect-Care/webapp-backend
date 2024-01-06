@@ -249,7 +249,11 @@ def login(request):
                 "employees_clinic_id": user.employees_clinic_id.id
                 }
                 token_payload = {
-                    'user_id': user.id,
+                    "id": user.id,
+                    "employee_role": user.employee_role,
+                    "employee_first_name": user.employee_first_name,
+                    "employee_last_name": user.employee_last_name,
+                    "employees_clinic_id": user.employees_clinic_id.id,
                     'exp': expiration_time.timestamp()
                 }
                 token = jwt.encode(token_payload, 'your_secret_key', algorithm='HS256')
