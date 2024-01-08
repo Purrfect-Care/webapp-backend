@@ -23,6 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 import os
 from rest_framework.response import Response
 from rest_framework import status
+from copy import deepcopy
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -196,12 +197,13 @@ class EmployeeView(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
 
     def create(self, request, *args, **kwargs):
+        mutable_data = deepcopy(request.data)
         # You can perform custom logic before or after calling the super().create()
         ph = PasswordHasher()
         # Example: You may want to hash the password before saving
-        raw_password = request.data.get('employee_password')
+        raw_password = mutable_data.get('employee_password')
         hashed_password = ph.hash(raw_password)
-        request.data['employee_password'] = hashed_password
+        mutable_data['employee_password'] = hashed_password
         response = super().create(request, *args, **kwargs)
         # You can perform additional actions after the object is created
         # Example: Send a welcome email
