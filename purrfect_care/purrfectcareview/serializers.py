@@ -130,7 +130,7 @@ class VisitSubtypeSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    employees_clinic = ClinicSerializer(source='employees_clinic_id', read_only=True)
+    employees_clinic = ClinicSerializer(source='employees_clinic_id', read_only=True, required=False)
 
     class Meta:
         model = models.Employee
