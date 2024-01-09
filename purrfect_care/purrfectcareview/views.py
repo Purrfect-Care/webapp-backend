@@ -208,6 +208,25 @@ class EmployeeView(viewsets.ModelViewSet):
         # You can perform additional actions after the object is created
         # Example: Send a welcome email
         return response
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        mutable_data = deepcopy(request.data)
+        # Check if the request contains a new password
+        raw_password = mutable_data.get('employee_password')
+
+        if raw_password and not raw_password.startswith("$argon2id$"):
+            # Hash the new password
+            ph = PasswordHasher()
+            hashed_password = ph.hash(raw_password)
+            mutable_data['employee_password'] = hashed_password
+
+        serializer = self.get_serializer(instance, data=mutable_data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
     
 
 
