@@ -242,28 +242,52 @@ def login(request):
             print(password)
             user = Employee.objects.get(employee_email=email)
             if user is not None and ph.verify(user.employee_password, password):
-                expiration_time = timezone.now() + timedelta(hours=2)
-                user_data = {
-                "id": user.id,
-                "employee_role": user.employee_role,
-                "employee_first_name": user.employee_first_name,
-                "employee_last_name": user.employee_last_name,
-                "employees_clinic_id": user.employees_clinic_id.id
-                }
-                token_payload = {
+                if user.employee_role != "SuperAdmin":
+                    expiration_time = timezone.now() + timedelta(hours=2)
+                    user_data = {
                     "id": user.id,
                     "employee_role": user.employee_role,
                     "employee_first_name": user.employee_first_name,
                     "employee_last_name": user.employee_last_name,
-                    "employees_clinic_id": user.employees_clinic_id.id,
-                    'exp': expiration_time.timestamp()
-                }
-                token = jwt.encode(token_payload, 'your_secret_key', algorithm='HS256')
-                print(expiration_time.timestamp())
-                print(datetime.fromtimestamp(expiration_time.timestamp())
-)
-                # Authentication successful
-                return JsonResponse({'message': 'Login successful', 'token': token, 'expiration_time': int(expiration_time.timestamp()), 'employee': user_data}, content_type='application/json')
+                    "employees_clinic_id": user.employees_clinic_id.id
+                    }
+                    token_payload = {
+                        "id": user.id,
+                        "employee_role": user.employee_role,
+                        "employee_first_name": user.employee_first_name,
+                        "employee_last_name": user.employee_last_name,
+                        "employees_clinic_id": user.employees_clinic_id.id,
+                        'exp': expiration_time.timestamp()
+                    }
+                    token = jwt.encode(token_payload, 'your_secret_key', algorithm='HS256')
+                    print(expiration_time.timestamp())
+                    print(datetime.fromtimestamp(expiration_time.timestamp())
+    )
+                    # Authentication successful
+                    return JsonResponse({'message': 'Login successful', 'token': token, 'expiration_time': int(expiration_time.timestamp()), 'employee': user_data}, content_type='application/json')
+                else:
+                    expiration_time = timezone.now() + timedelta(hours=2)
+                    user_data = {
+                    "id": user.id,
+                    "employee_role": user.employee_role,
+                    "employee_first_name": user.employee_first_name,
+                    "employee_last_name": user.employee_last_name,
+                    "employees_clinic_id": ""
+                    }
+                    token_payload = {
+                        "id": user.id,
+                        "employee_role": user.employee_role,
+                        "employee_first_name": user.employee_first_name,
+                        "employee_last_name": user.employee_last_name,
+                        "employees_clinic_id": "",
+                        'exp': expiration_time.timestamp()
+                    }
+                    token = jwt.encode(token_payload, 'your_secret_key', algorithm='HS256')
+                    print(expiration_time.timestamp())
+                    print(datetime.fromtimestamp(expiration_time.timestamp())
+    )
+                    # Authentication successful
+                    return JsonResponse({'message': 'Login successful', 'token': token, 'expiration_time': int(expiration_time.timestamp()), 'employee': user_data}, content_type='application/json')
             else:
                 # Authentication failed
                 return JsonResponse({'message': 'Invalid credentials'}, status=401)
