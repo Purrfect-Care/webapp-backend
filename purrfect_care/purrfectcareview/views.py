@@ -215,7 +215,7 @@ class EmployeeView(viewsets.ModelViewSet):
 
         if employee_role is not None and employees_clinic_id is not None:
             queryset = Employee.objects.filter(employee_role=employee_role, employees_clinic_id=employees_clinic_id)
-        if employees_clinic_id is not None:
+        elif employees_clinic_id is not None:
             queryset = Employee.objects.filter(employees_clinic_id=employees_clinic_id)
         else:
             queryset = Employee.objects.all()
