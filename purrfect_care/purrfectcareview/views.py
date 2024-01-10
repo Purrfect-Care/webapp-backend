@@ -8,7 +8,7 @@ from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSeria
     VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, \
     IllnessSerializer, ClinicSerializer, \
     MedicationSerializer, PrescribedMedicationSerializer, PhotoSerializer, SpeciesSerializer, BreedSerializer
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
@@ -24,6 +24,7 @@ import os
 from rest_framework.response import Response
 from rest_framework import status
 from copy import deepcopy
+from django.db.models import Q
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -163,16 +164,84 @@ class VisitView(viewsets.ModelViewSet):
         return queryset
     
     def create(self, request, *args, **kwargs):
-        employee_id = request.data.get('visits_employee_id')
-        visit_datetime = request.data.get('visit_datetime')
-        overlapping_visits = Visit.objects.filter(visits_employee_id=employee_id, visit_datetime=visit_datetime)
-        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Extract necessary data from the request
+        visit_datetime = serializer.validated_data['visit_datetime']
+        visit_duration = serializer.validated_data['visit_duration']
+
+        # Convert visit_duration to timedelta
+        visit_duration_timedelta = timedelta(hours=visit_duration.hour, minutes=visit_duration.minute)
+
+        # Calculate the start and end time of the new visit
+        visit_start = visit_datetime
+        visit_end = visit_start + visit_duration_timedelta
+
+        # Check for overlapping visits
+        overlapping_visits = Visit.objects.filter(
+        visits_employee_id=serializer.validated_data['visits_employee_id']
+            ).filter(
+            Q(visit_datetime__lte=visit_start, visit_datetime__gt=visit_start - visit_duration_timedelta) |
+            Q(visit_datetime__lte=visit_end, visit_datetime__gte=visit_start) |
+            Q(visit_datetime__lt=visit_end, visit_datetime__gte=visit_start - visit_duration_timedelta)
+            )
+
         if overlapping_visits.exists():
+            # There is an overlap, return a validation error
             return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
         
-        return super().create(request, *args, **kwargs)
+        # Continue with the regular creation process
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+
+        # Extract necessary data from the request
+        visit_datetime = serializer.validated_data['visit_datetime']
+        visit_duration = serializer.validated_data['visit_duration']
+
+        # Convert visit_duration to timedelta
+        visit_duration_timedelta = timedelta(hours=visit_duration.hour, minutes=visit_duration.minute)
+
+        # Fetch the existing visit from the database to get its current visit_datetime
+        existing_visit = Visit.objects.get(id=instance.id)
+        existing_visit_datetime = existing_visit.visit_datetime
+
+        # Ensure both existing_visit_datetime and visit_datetime are in the same timezone
+        existing_visit_datetime = timezone.localtime(existing_visit_datetime)
+        visit_start = timezone.localtime(visit_datetime)
+
+        # Manually set the timezone for visit_start and visit_end to UTC
+        visit_start = (visit_start - timedelta(hours=1)).replace(tzinfo=timezone.utc)
+        visit_end = (visit_start + visit_duration_timedelta).replace(tzinfo=timezone.utc)
+
+        # Check for overlapping visits excluding the current visit being updated
+        overlapping_visits = Visit.objects.filter(
+            visits_employee_id=serializer.validated_data['visits_employee_id']
+        ).exclude(id=instance.id).filter(
+            Q(visit_datetime__lte=visit_start, visit_datetime__gt=visit_start - visit_duration_timedelta) |
+            Q(visit_datetime__lte=visit_end, visit_datetime__gte=visit_start) |
+            Q(visit_datetime__lt=visit_end, visit_datetime__gte=visit_start - visit_duration_timedelta)
+            )
 
 
+        if overlapping_visits.exists():
+            # There is an overlap, return a validation error
+            return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Continue with the regular update process
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+
+
+    
 class MedicationView(viewsets.ModelViewSet):
     queryset = Medication.objects.all()
     serializer_class = MedicationSerializer
