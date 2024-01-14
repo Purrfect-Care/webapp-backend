@@ -176,7 +176,8 @@ class VisitView(viewsets.ModelViewSet):
 
         # Calculate the start and end time of the new visit
         visit_start = visit_datetime
-        visit_end = visit_start + visit_duration_timedelta
+        visit_start = (visit_start - timedelta(hours=1)).replace(tzinfo=timezone.utc)
+        visit_end = (visit_start + visit_duration_timedelta).replace(tzinfo=timezone.utc)
 
         # Check for overlapping visits
         overlapping_visits = Visit.objects.filter(
