@@ -5,15 +5,12 @@ from datetime import date
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
-        # Don't pass the 'fields' arg up to the superclass
         fields = kwargs.pop('fields', None)
         exclude = kwargs.pop('exclude', None)
 
-        # Instantiate the superclass normally
         super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
 
         if fields is not None:
-            # Drop any fields that are not specified in the `fields` argument.
             allowed = set(fields)
             existing = set(self.fields.keys())
             for field_name in existing - allowed:
@@ -80,7 +77,6 @@ class PatientSerializer(serializers.ModelSerializer):
 
         return super().to_representation(instance)
 
-
     class Meta:
         model = models.Patient
         fields = '__all__'
@@ -111,25 +107,35 @@ class IllnessHistorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class VisitTypeSerializer(serializers.ModelSerializer):
+class VisitTypeSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = models.VisitType
         fields = '__all__'
 
 
-class VisitSubtypeSerializer(serializers.ModelSerializer):
+class VisitSubtypeSerializer(DynamicFieldsModelSerializer):
     visit_subtype_type = VisitTypeSerializer(source='visit_subtypes_visit_type_id', read_only=True)
     class Meta:
         model = models.VisitSubtype
         fields = '__all__'
 
 
-class EmployeeSerializer(serializers.ModelSerializer):
+class EmployeeSerializer(DynamicFieldsModelSerializer):
     employees_clinic = ClinicSerializer(source='employees_clinic_id', read_only=True, required=False)
 
     class Meta:
         model = models.Employee
         fields = '__all__'
+
+
+class VisitListSerializer(serializers.ModelSerializer):
+    visits_employee = EmployeeSerializer(source='visits_employee_id', fields=['employee_first_name', 'employee_last_name'])
+    visits_visit_type = VisitTypeSerializer(source='visits_visit_type_id', fields=['visit_type_name'])
+    visits_visit_subtype = VisitSubtypeSerializer(source='visits_visit_subtype_id', fields=['visit_subtype_name'])
+
+    class Meta:
+        model = models.Visit
+        fields = ('id', 'visit_datetime', 'visit_duration', 'visit_status', 'visits_employee', 'visits_visit_type', 'visits_visit_subtype')
 
 
 class VisitSerializer(serializers.ModelSerializer):

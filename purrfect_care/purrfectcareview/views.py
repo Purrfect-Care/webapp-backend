@@ -7,7 +7,8 @@ from rest_framework import viewsets
 from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSerializer, PatientSerializer, \
     VisitSerializer, IllnessHistorySerializer, PrescriptionSerializer, EmployeeSerializer, PatientSideBarListSerializer, \
     IllnessSerializer, ClinicSerializer, \
-    MedicationSerializer, PrescribedMedicationSerializer, PhotoSerializer, SpeciesSerializer, BreedSerializer
+    MedicationSerializer, PrescribedMedicationSerializer, PhotoSerializer, SpeciesSerializer, BreedSerializer, \
+    VisitListSerializer
 from datetime import datetime, timedelta, time
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -25,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from copy import deepcopy
 from django.db.models import Q
+
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -49,6 +51,8 @@ def delete_old_photo(request, file_name):
             return JsonResponse({'error': 'File not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_empty_prescriptions(request):
@@ -76,12 +80,10 @@ class IllnessHistoryView(viewsets.ModelViewSet):
     def get_queryset(self):
         patient_id = self.request.query_params.get('patient_id', None)
 
-        # Validate that the patient_id parameter is provided
-        if patient_id is None:
-            return IllnessHistory.objects.all()
+        queryset = IllnessHistory.objects.all()
+        if patient_id is not None:
+            queryset = queryset.filter(illness_history_patient_id=patient_id)
 
-        # Filter illness history by patient_id
-        queryset = IllnessHistory.objects.filter(illness_history_patient_id=patient_id)
         return queryset
 
 
@@ -91,10 +93,10 @@ class PhotoView(viewsets.ModelViewSet):
     def get_queryset(self):
         visit_id = self.request.query_params.get('visit_id', None)
 
-        if visit_id is None:
-            return Photo.objects.all()
+        queryset = Photo.objects.all()
+        if visit_id is not None:
+            queryset = queryset.filter(photos_visit_id=visit_id)
 
-        queryset = Photo.objects.filter(photos_visit_id=visit_id)
         return queryset
 
 
@@ -125,12 +127,9 @@ class PrescriptionsView(viewsets.ModelViewSet):
     def get_queryset(self):
         patient_id = self.request.query_params.get('patient_id', None)
 
-        # Validate that the patient_id parameter is provided
-        if patient_id is None:
-            return Prescription.objects.all()
-
-        # Filter illness history by patient_id
-        queryset = Prescription.objects.filter(prescriptions_patient_id=patient_id)
+        queryset = Prescription.objects.all()
+        if patient_id is not None:
+            queryset = queryset.filter(prescriptions_patient_id=patient_id)
         return queryset
 
 
@@ -144,6 +143,25 @@ class VisitTypeView(viewsets.ModelViewSet):
     queryset = VisitType.objects.all()
 
 
+class VisitListView(viewsets.ModelViewSet):
+    serializer_class = VisitListSerializer
+    queryset = Visit.objects.all().order_by('visit_datetime')
+
+    def get_queryset(self):
+        employee_id = self.request.query_params.get('employee_id', None)
+        patient_id = self.request.query_params.get('patient_id', None)
+        clinic_id = self.request.query_params.get('clinic_id', None)
+
+        queryset = Visit.objects.all().order_by('visit_datetime')
+        if clinic_id is not None:
+            queryset = queryset.filter(visits_clinic_id=clinic_id)
+        if employee_id is not None:
+            queryset = queryset.filter(visits_employee_id=employee_id)
+        if patient_id is not None:
+            queryset = queryset.filter(visits_patient_id=patient_id)
+
+        return queryset
+
 class VisitView(viewsets.ModelViewSet):
     serializer_class = VisitSerializer
 
@@ -152,17 +170,16 @@ class VisitView(viewsets.ModelViewSet):
         patient_id = self.request.query_params.get('patient_id', None)
         clinic_id = self.request.query_params.get('clinic_id', None)
 
+        queryset = Visit.objects.all().order_by('visit_datetime')
         if clinic_id is not None:
-            queryset = Visit.objects.filter(visits_clinic_id=clinic_id).order_by('visit_datetime')
-        elif employee_id is not None:
-            queryset = Visit.objects.filter(visits_employee_id=employee_id).order_by('visit_datetime')
-        elif patient_id is not None:
-            queryset = Visit.objects.filter(visits_patient_id=patient_id).order_by('visit_datetime')
-        else:
-            queryset = Visit.objects.all().order_by('visit_datetime')
+            queryset = queryset.filter(visits_clinic_id=clinic_id)
+        if employee_id is not None:
+            queryset = queryset.filter(visits_employee_id=employee_id)
+        if patient_id is not None:
+            queryset = queryset.filter(visits_patient_id=patient_id)
 
         return queryset
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -191,7 +208,7 @@ class VisitView(viewsets.ModelViewSet):
         if overlapping_visits.exists():
             # There is an overlap, return a validation error
             return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Continue with the regular creation process
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -278,6 +295,7 @@ class EmployeeView(viewsets.ModelViewSet):
         # You can perform additional actions after the object is created
         # Example: Send a welcome email
         return response
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -297,19 +315,16 @@ class EmployeeView(viewsets.ModelViewSet):
         self.perform_update(serializer)
 
         return Response(serializer.data)
-    
-
 
     def get_queryset(self):
         employee_role = self.request.query_params.get('employee_role', None)
         employees_clinic_id = self.request.query_params.get('employees_clinic_id', None)
 
-        if employee_role is not None and employees_clinic_id is not None:
-            queryset = Employee.objects.filter(employee_role=employee_role, employees_clinic_id=employees_clinic_id)
-        elif employees_clinic_id is not None:
-            queryset = Employee.objects.filter(employees_clinic_id=employees_clinic_id)
-        else:
-            queryset = Employee.objects.all()
+        queryset = Employee.objects.all()
+        if employee_role is not None :
+            queryset = queryset.filter(employee_role=employee_role)
+        if employees_clinic_id is not None:
+            queryset = queryset.filter(employees_clinic_id=employees_clinic_id)
 
         return queryset
 
