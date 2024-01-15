@@ -129,7 +129,7 @@ class EmployeeSerializer(DynamicFieldsModelSerializer):
 
 
 class VisitListSerializer(serializers.ModelSerializer):
-    visits_employee = EmployeeSerializer(source='visits_employee_id', fields=['employee_first_name', 'employee_last_name'])
+    visits_employee = EmployeeSerializer(source='visits_employee_id', fields=['id', 'employee_first_name', 'employee_last_name'])
     visits_visit_type = VisitTypeSerializer(source='visits_visit_type_id', fields=['visit_type_name'])
     visits_visit_subtype = VisitSubtypeSerializer(source='visits_visit_subtype_id', fields=['visit_subtype_name'])
 
