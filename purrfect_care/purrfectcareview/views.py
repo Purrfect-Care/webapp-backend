@@ -25,7 +25,7 @@ import os
 from rest_framework.response import Response
 from rest_framework import status
 from copy import deepcopy
-from django.db.models import Q
+from django.db.models import Q, Min, Max, F, Func, ExpressionWrapper, fields
 
 
 @csrf_exempt
@@ -192,27 +192,42 @@ class VisitView(viewsets.ModelViewSet):
         visit_duration_timedelta = timedelta(hours=visit_duration.hour, minutes=visit_duration.minute)
 
         # Calculate the start and end time of the new visit
-        visit_start = visit_datetime
+        visit_start = timezone.localtime(visit_datetime)
         visit_start = (visit_start - timedelta(hours=1)).replace(tzinfo=timezone.utc)
         visit_end = (visit_start + visit_duration_timedelta).replace(tzinfo=timezone.utc)
 
         # Check for overlapping visits
-        overlapping_visits = Visit.objects.filter(
-        visits_employee_id=serializer.validated_data['visits_employee_id']
-            ).filter(
-            Q(visit_datetime__lte=visit_start, visit_datetime__gt=visit_start - visit_duration_timedelta) |
-            Q(visit_datetime__lte=visit_end, visit_datetime__gte=visit_start) |
-            Q(visit_datetime__lt=visit_end, visit_datetime__gte=visit_start - visit_duration_timedelta)
-            )
+        visit_before = Visit.objects.filter(
+            visits_employee_id=serializer.validated_data['visits_employee_id'],
+            visit_datetime__lt=visit_start
+        ).order_by('-visit_datetime').first()
 
-        if overlapping_visits.exists():
+        # Find the visit after the new one
+        visit_after = Visit.objects.filter(
+            visits_employee_id=serializer.validated_data['visits_employee_id'],
+            visit_datetime__gt=visit_start
+        ).order_by('visit_datetime').first()
+
+        # Check for overlap
+        overlap_before = (
+            visit_before and
+            (visit_before.visit_datetime + timedelta(hours=visit_before.visit_duration.hour, 
+                        minutes=visit_before.visit_duration.minute) > visit_start)
+        )
+
+        overlap_after = (
+            visit_after and
+            (visit_after.visit_datetime < visit_end)
+        )
+
+        if not overlap_before and not overlap_after:
+            # No overlap, proceed with the regular creation process
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
             # There is an overlap, return a validation error
             return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Continue with the regular creation process
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -240,22 +255,34 @@ class VisitView(viewsets.ModelViewSet):
         visit_end = (visit_start + visit_duration_timedelta).replace(tzinfo=timezone.utc)
 
         # Check for overlapping visits excluding the current visit being updated
-        overlapping_visits = Visit.objects.filter(
-            visits_employee_id=serializer.validated_data['visits_employee_id']
-        ).exclude(id=instance.id).filter(
-            Q(visit_datetime__lte=visit_start, visit_datetime__gt=visit_start - visit_duration_timedelta) |
-            Q(visit_datetime__lte=visit_end, visit_datetime__gte=visit_start) |
-            Q(visit_datetime__lt=visit_end, visit_datetime__gte=visit_start - visit_duration_timedelta)
-            )
+        visit_before = Visit.objects.filter(
+            visits_employee_id=serializer.validated_data['visits_employee_id'],
+            visit_datetime__lt=visit_start
+        ).exclude(id=instance.id).order_by('-visit_datetime').first()
 
+        # Find the visit after the new one
+        visit_after = Visit.objects.filter(
+            visits_employee_id=serializer.validated_data['visits_employee_id'],
+            visit_datetime__gt=visit_start
+        ).exclude(id=instance.id).order_by('visit_datetime').first()
 
-        if overlapping_visits.exists():
-            # There is an overlap, return a validation error
-            return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
+        # Check for overlap
+        overlap_before = (
+            visit_before and
+            (visit_before.visit_datetime + timedelta(hours=visit_before.visit_duration.hour, 
+                        minutes=visit_before.visit_duration.minute) >= visit_start)
+        )
 
-        # Continue with the regular update process
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        overlap_after = (
+            visit_after and
+            (visit_after.visit_datetime <= visit_end)
+        )
+
+        if not overlap_before and not overlap_after:
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        else:
+             return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
