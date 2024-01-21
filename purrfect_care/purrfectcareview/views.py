@@ -270,12 +270,12 @@ class VisitView(viewsets.ModelViewSet):
         overlap_before = (
             visit_before and
             (visit_before.visit_datetime + timedelta(hours=visit_before.visit_duration.hour, 
-                        minutes=visit_before.visit_duration.minute) >= visit_start)
+                        minutes=visit_before.visit_duration.minute) > visit_start)
         )
 
         overlap_after = (
             visit_after and
-            (visit_after.visit_datetime <= visit_end)
+            (visit_after.visit_datetime < visit_end)
         )
 
         if not overlap_before and not overlap_after:
