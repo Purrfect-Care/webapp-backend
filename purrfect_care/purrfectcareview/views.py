@@ -9,14 +9,13 @@ from .serializers import OwnerSerializer, VisitTypeSerializer, VisitSubtypeSeria
     IllnessSerializer, ClinicSerializer, \
     MedicationSerializer, PrescribedMedicationSerializer, PhotoSerializer, SpeciesSerializer, BreedSerializer, \
     VisitListSerializer
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
 import jwt
 from argon2 import PasswordHasher
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework import permissions
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -25,27 +24,21 @@ import os
 from rest_framework.response import Response
 from rest_framework import status
 from copy import deepcopy
-from django.db.models import Q, Min, Max, F, Func, ExpressionWrapper, fields
 
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_old_photo(request, file_name):
     try:
-        # Assuming your photos are stored in the media directory within the project
         file_path = os.path.join('/webapp-backend', 'purrfect_care', 'media', 'profile_pictures', file_name)
 
         print(f"Attempting to delete file: {file_path}")
 
-        # Check if the file is named "default.png" and skip deletion
         if file_name == 'default.png':
             return JsonResponse({'message': 'File is named default.png and will not be deleted'})
 
-        # Implement logic to delete the file
         if os.path.exists(file_path):
             os.remove(file_path)
-
-            # Respond with success
             return JsonResponse({'message': 'Photo deleted successfully'}, status=204)
         else:
             return JsonResponse({'error': 'File not found'}, status=404)
@@ -57,14 +50,10 @@ def delete_old_photo(request, file_name):
 @require_http_methods(["DELETE"])
 def delete_empty_prescriptions(request):
     try:
-        # Fetch all prescriptions
         prescriptions = Prescription.objects.all()
 
-        # Iterate through prescriptions
         for prescription in prescriptions:
-            # Check if the prescription has no attached medications
             if not prescription.prescribed_medications.exists():
-                # If empty, delete the prescription
                 prescription.delete()
                 print('Empty prescription deleted successfully')
 
@@ -184,31 +173,25 @@ class VisitView(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Extract necessary data from the request
         visit_datetime = serializer.validated_data['visit_datetime']
         visit_duration = serializer.validated_data['visit_duration']
 
-        # Convert visit_duration to timedelta
         visit_duration_timedelta = timedelta(hours=visit_duration.hour, minutes=visit_duration.minute)
 
-        # Calculate the start and end time of the new visit
         visit_start = timezone.localtime(visit_datetime)
         visit_start = (visit_start - timedelta(hours=1)).replace(tzinfo=timezone.utc)
         visit_end = (visit_start + visit_duration_timedelta).replace(tzinfo=timezone.utc)
 
-        # Check for overlapping visits
         visit_before = Visit.objects.filter(
             visits_employee_id=serializer.validated_data['visits_employee_id'],
             visit_datetime__lt=visit_start
         ).order_by('-visit_datetime').first()
 
-        # Find the visit after the new one
         visit_after = Visit.objects.filter(
             visits_employee_id=serializer.validated_data['visits_employee_id'],
             visit_datetime__gt=visit_start
         ).order_by('visit_datetime').first()
 
-        # Check for overlap
         overlap_before = (
             visit_before and
             (visit_before.visit_datetime + timedelta(hours=visit_before.visit_duration.hour, 
@@ -221,12 +204,10 @@ class VisitView(viewsets.ModelViewSet):
         )
 
         if not overlap_before and not overlap_after:
-            # No overlap, proceed with the regular creation process
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         else:
-            # There is an overlap, return a validation error
             return Response({"message": "This vet already has a visit at this time."}, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
@@ -235,38 +216,31 @@ class VisitView(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
-        # Extract necessary data from the request
         visit_datetime = serializer.validated_data['visit_datetime']
         visit_duration = serializer.validated_data['visit_duration']
 
-        # Convert visit_duration to timedelta
         visit_duration_timedelta = timedelta(hours=visit_duration.hour, minutes=visit_duration.minute)
 
-        # Fetch the existing visit from the database to get its current visit_datetime
         existing_visit = Visit.objects.get(id=instance.id)
         existing_visit_datetime = existing_visit.visit_datetime
 
-        # Ensure both existing_visit_datetime and visit_datetime are in the same timezone
         existing_visit_datetime = timezone.localtime(existing_visit_datetime)
         visit_start = timezone.localtime(visit_datetime)
 
-        # Manually set the timezone for visit_start and visit_end to UTC
         visit_start = (visit_start - timedelta(hours=1)).replace(tzinfo=timezone.utc)
         visit_end = (visit_start + visit_duration_timedelta).replace(tzinfo=timezone.utc)
 
-        # Check for overlapping visits excluding the current visit being updated
         visit_before = Visit.objects.filter(
             visits_employee_id=serializer.validated_data['visits_employee_id'],
             visit_datetime__lt=visit_start
         ).exclude(id=instance.id).order_by('-visit_datetime').first()
 
-        # Find the visit after the new one
         visit_after = Visit.objects.filter(
             visits_employee_id=serializer.validated_data['visits_employee_id'],
             visit_datetime__gt=visit_start
         ).exclude(id=instance.id).order_by('visit_datetime').first()
 
-        # Check for overlap
+
         overlap_before = (
             visit_before and
             (visit_before.visit_datetime + timedelta(hours=visit_before.visit_duration.hour, 
@@ -312,15 +286,11 @@ class EmployeeView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         mutable_data = deepcopy(request.data)
-        # You can perform custom logic before or after calling the super().create()
         ph = PasswordHasher()
-        # Example: You may want to hash the password before saving
         raw_password = mutable_data.get('employee_password')
         hashed_password = ph.hash(raw_password)
         mutable_data['employee_password'] = hashed_password
         response = super().create(request, *args, **kwargs)
-        # You can perform additional actions after the object is created
-        # Example: Send a welcome email
         return response
 
     def update(self, request, *args, **kwargs):
@@ -328,11 +298,9 @@ class EmployeeView(viewsets.ModelViewSet):
         instance = self.get_object()
 
         mutable_data = deepcopy(request.data)
-        # Check if the request contains a new password
         raw_password = mutable_data.get('employee_password')
 
         if raw_password and not raw_password.startswith("$argon2id$"):
-            # Hash the new password
             ph = PasswordHasher()
             hashed_password = ph.hash(raw_password)
             mutable_data['employee_password'] = hashed_password
@@ -394,7 +362,6 @@ def login(request):
                     print(expiration_time.timestamp())
                     print(datetime.fromtimestamp(expiration_time.timestamp())
     )
-                    # Authentication successful
                     return JsonResponse({'message': 'Login successful', 'token': token, 'expiration_time': int(expiration_time.timestamp()), 'employee': user_data}, content_type='application/json')
                 else:
                     expiration_time = timezone.now() + timedelta(hours=2)
@@ -417,13 +384,10 @@ def login(request):
                     print(expiration_time.timestamp())
                     print(datetime.fromtimestamp(expiration_time.timestamp())
     )
-                    # Authentication successful
                     return JsonResponse({'message': 'Login successful', 'token': token, 'expiration_time': int(expiration_time.timestamp()), 'employee': user_data}, content_type='application/json')
             else:
-                # Authentication failed
                 return JsonResponse({'message': 'Invalid credentials'}, status=401)
         except Exception as e:
-            # Handle other exceptions
             print(f"Error: {e}")
             return JsonResponse({'message': 'Internal Server Error'}, status=500)
     else:

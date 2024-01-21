@@ -71,7 +71,6 @@ class PatientSerializer(serializers.ModelSerializer):
         return data
     
     def to_representation(self, instance):
-        # Check if patient_photo is None and set it to the default value
         if not instance.patient_photo:
             instance.patient_photo = 'profile_pictures/default.png'
 
@@ -156,7 +155,6 @@ class VisitSerializer(serializers.ModelSerializer):
         instance.patient_weight = validated_data.get('patient_weight', instance.patient_weight)
         instance.patient_height = validated_data.get('patient_height', instance.patient_height)
 
-        # Update related fields if provided in validated data
         visits_employee_id = validated_data.get('visits_employee_id')
         if visits_employee_id is not None:
             instance.visits_employee_id = visits_employee_id
@@ -175,7 +173,6 @@ class VisitSerializer(serializers.ModelSerializer):
 
 
 class PhotoSerializer(serializers.ModelSerializer):
-    # photos_visit = VisitSerializer(source='photos_visit_id', read_only=True)
 
     class Meta:
         model = models.Photo

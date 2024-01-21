@@ -1,6 +1,5 @@
 from django.urls import include, path
 from . import views
-from django.contrib.auth import views as auth_views
 from rest_framework import routers
 from django.conf import settings
 from django.conf.urls.static import static
